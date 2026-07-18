@@ -1,6 +1,7 @@
 import type { Settings, KeyCombo } from "../types";
 import { KeyRecorder } from "./KeyRecorder";
 import { Switch } from "./Switch";
+import { Section } from "./Section";
 
 type Props = {
   s: Settings;
@@ -30,14 +31,14 @@ export function ScriptControl({ s, update, running, onStart, onStop, duplicateOf
 
   return (
     <>
-      <div className="card">
-        <h3>
-          腳本控制
+      <Section
+        title="腳本控制"
+        extra={
           <span className={`status ${running ? "on" : ""}`}>
             <span className="dot" /> {running ? "執行中" : "已停止"}
           </span>
-        </h3>
-
+        }
+      >
         <div className="row">
           <span className="row-label">啟動 / 關閉</span>
           <div className="row-value">
@@ -75,10 +76,9 @@ export function ScriptControl({ s, update, running, onStart, onStop, duplicateOf
             </label>
           </div>
         </div>
-      </div>
+      </Section>
 
-      <div className="card">
-        <h3>模式</h3>
+      <Section title="模式">
         <div className="row">
           <label className={`check ${disabled ? "disabled" : ""}`}>
             <input
@@ -130,7 +130,7 @@ export function ScriptControl({ s, update, running, onStart, onStop, duplicateOf
             </button>
           </div>
         </div>
-      </div>
+      </Section>
     </>
   );
 }

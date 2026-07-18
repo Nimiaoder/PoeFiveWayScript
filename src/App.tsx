@@ -91,15 +91,20 @@ export default function App() {
   }, [running, settings]);
 
   // 啟動檢查
+  // 規則:
+  //   - 若有勾選「打手模式」或「刷新模式」→ 依各自模式檢核對應按鍵,不檢核 Buff。
+  //   - 兩者都未勾選 → 視為「純自動上 Buff」模式,需至少有一個已啟用且已設定按鍵的 Buff。
   const validate = (s: Settings): string | null => {
-    if (!s.attackerMode && !s.refreshMode) return "請至少啟用「打手模式」或「刷新模式」。";
     if (s.attackerMode && !s.attackKey) return "打手模式需要設定攻擊鍵。";
     if (s.refreshMode) {
       if (!s.enterKey) return "刷新模式需要設定進圈鍵。";
       if (!s.exitKey) return "刷新模式需要設定出圈鍵。";
       if (!s.refreshDirection) return "刷新模式需要選擇「先進圈」或「先出圈」。";
     }
-    if (!s.buffs || s.buffs.length === 0) return "請至少建立一個 Buff。";
+    if (!s.attackerMode && !s.refreshMode) {
+      const hasBuff = (s.buffs || []).some((b) => b.enabled && b.key);
+      if (!hasBuff) return "未啟用打手/刷新模式時,請至少啟用一個已設定按鍵的 Buff。";
+    }
     return null;
   };
 

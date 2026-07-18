@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Settings } from "../types";
 import { Switch } from "./Switch";
+import { Section } from "./Section";
 
 type Props = {
   s: Settings;
@@ -32,8 +33,7 @@ export function SettingsPanel({ s, update, running, onReset, showInfo }: Props) 
 
   return (
     <>
-      <div className="card">
-        <h3>顯示</h3>
+      <Section title="顯示">
         <div className="row">
           <span className="row-label">視窗透明度</span>
           <div className="row-value" style={{ flex: 1, maxWidth: 220 }}>
@@ -72,10 +72,9 @@ export function SettingsPanel({ s, update, running, onReset, showInfo }: Props) 
             />
           </div>
         </div>
-      </div>
+      </Section>
 
-      <div className="card">
-        <h3>執行參數</h3>
+      <Section title="執行參數">
         <div className="row">
           <span className="row-label">攻擊恢復延遲 (毫秒)</span>
           <div className="row-value">
@@ -89,10 +88,9 @@ export function SettingsPanel({ s, update, running, onReset, showInfo }: Props) 
             />
           </div>
         </div>
-      </div>
+      </Section>
 
-      <div className="card">
-        <h3>其它</h3>
+      <Section title="其它">
         <div className="row">
           <span className="row-label">重設所有設定</span>
           <button className="btn danger small" disabled={running} onClick={onReset}>
@@ -105,7 +103,7 @@ export function SettingsPanel({ s, update, running, onReset, showInfo }: Props) 
             {checking ? "檢查中..." : "檢查"}
           </button>
         </div>
-      </div>
+      </Section>
     </>
   );
 }

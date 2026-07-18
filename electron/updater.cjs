@@ -3,7 +3,7 @@ const https = require("https");
 const semver = require("semver");
 
 // TODO: 修改為您自己的 GitHub repo
-const REPO = "your-user/poe-five-army-script";
+const REPO = "Nimiaoder/PoeFiveWayScript";
 
 function fetchLatest() {
   return new Promise((resolve, reject) => {

@@ -1,5 +1,6 @@
 import type { Settings, KeyCombo } from "../types";
 import { KeyRecorder } from "./KeyRecorder";
+import { Section } from "./Section";
 
 type Props = {
   s: Settings;
@@ -27,8 +28,7 @@ export function KeyConfig({ s, update, running, duplicateOf, showError }: Props)
 
   return (
     <>
-      <div className="card">
-        <h3>攻擊 (Attack)</h3>
+      <Section title="攻擊 (Attack)">
         <div className="row">
           <span className="row-label">攻擊鍵</span>
           <div className="row-value">
@@ -39,10 +39,9 @@ export function KeyConfig({ s, update, running, duplicateOf, showError }: Props)
             />
           </div>
         </div>
-      </div>
+      </Section>
 
-      <div className="card">
-        <h3>刷新 (Refresh)</h3>
+      <Section title="刷新 (Refresh)">
         <div className="row">
           <span className="row-label">進圈鍵</span>
           <div className="row-value">
@@ -89,7 +88,7 @@ export function KeyConfig({ s, update, running, duplicateOf, showError }: Props)
             />
           </div>
         </div>
-      </div>
+      </Section>
     </>
   );
 }

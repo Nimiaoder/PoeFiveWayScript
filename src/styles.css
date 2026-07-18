@@ -441,3 +441,52 @@ input.text:focus { outline: none; border-color: var(--accent); }
 
 .radio-group { display: flex; gap: 16px; }
 .hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+/* ===== 可展開/收起區塊 (Section) ===== */
+.card.section { padding: 0; }
+.card.section .section-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 14px 16px;
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  transition: background 0.15s;
+  text-align: left;
+}
+.card.section .section-header:hover { background: rgba(255, 255, 255, 0.03); }
+.card.section .section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.card.section .section-chev {
+  color: var(--text-muted);
+  transition: transform 0.18s ease;
+  transform: rotate(0deg);
+  flex-shrink: 0;
+}
+.card.section .section-chev.open { transform: rotate(90deg); }
+.card.section .section-extra {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.card.section .section-body {
+  padding: 0 16px 14px 16px;
+}
+.card.section.collapsed .section-header { border-radius: var(--radius-lg); }
+.card.section.open .section-header {
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding-bottom: 12px;
+}
+.card.section.open .section-body { padding-top: 12px; }

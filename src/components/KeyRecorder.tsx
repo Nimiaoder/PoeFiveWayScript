@@ -114,6 +114,10 @@ export function KeyRecorder({
     // 已在錄製中：忽略再次點擊 (修正問題 1: 卡住)
     if (recordingRef.current) return;
     try {
+      // 修正:若使用者剛在輸入框輸入完 (如 Buff 名稱) 直接來點按鍵設定,
+      // 要先讓輸入框失焦,否則按下的按鍵會同時寫入輸入框。
+      const active = document.activeElement as HTMLElement | null;
+      if (active && typeof active.blur === "function") active.blur();
       btnRef.current?.blur();
       setActive(idRef.current);
       recordingRef.current = true;

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Settings, KeyCombo, Buff } from "../types";
 import { KeyRecorder } from "./KeyRecorder";
 import { Switch } from "./Switch";
+import { Section } from "./Section";
 
 type Props = {
   s: Settings;
@@ -44,14 +45,14 @@ export function BuffPanel({ s, update, running, duplicateOf, showError, confirm 
   };
 
   return (
-    <div className="card">
-      <h3>
-        Buff
+    <Section
+      title="Buff"
+      extra={
         <button className="btn primary small" onClick={openAdd} disabled={disabled}>
           + 新增
         </button>
-      </h3>
-
+      }
+    >
       {s.buffs.length === 0 && <p className="hint">尚未設定 Buff,點右上角「新增」建立一個。</p>}
 
       <div className="buff-list">
@@ -117,7 +118,7 @@ export function BuffPanel({ s, update, running, duplicateOf, showError, confirm 
           showError={showError}
         />
       )}
-    </div>
+    </Section>
   );
 }
 
