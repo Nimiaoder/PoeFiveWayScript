@@ -1,6 +1,6 @@
 {
   "name": "PoeFiveWayScript",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "PoeFiveWayScript",
   "main": "electron/main.cjs",
   "author": "LiuChenWei",
