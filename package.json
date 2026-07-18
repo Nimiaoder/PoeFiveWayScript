@@ -1,0 +1,38 @@
+{
+  "name": "PoeFiveWayScript",
+  "version": "1.0.0",
+  "description": "PoeFiveWayScript",
+  "main": "electron/main.cjs",
+  "author": "LiuChenWei",
+  "license": "MIT",
+
+  "scripts": {
+    "dev:vite": "vite",
+    "dev:electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
+    "dev": "concurrently -k \"npm:dev:vite\" \"npm:dev:electron\"",
+    "build": "vite build",
+    "package:win": "npm run build && electron-packager . \"PoeFiveWayScript\" --platform=win32 --arch=x64 --out=release --overwrite --ignore=\"^/src\" --ignore=\"^/release\" --prune=true"
+  },
+
+  "dependencies": {
+    "electron-store": "8.2.0",
+    "uiohook-napi": "1.5.4",
+    "@nut-tree-fork/nut-js": "4.2.0",
+    "semver": "7.6.3"
+  },
+
+  "devDependencies": {
+    "electron": "31.7.7",
+    "@electron/packager": "^20.0.2",
+    "vite": "5.4.10",
+    "@vitejs/plugin-react": "4.3.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "typescript": "5.6.3",
+    "concurrently": "9.0.1",
+    "wait-on": "8.0.1",
+    "cross-env": "7.0.3"
+  }
+}
