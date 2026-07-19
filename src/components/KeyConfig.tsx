@@ -1,6 +1,6 @@
-import type { Settings, KeyCombo } from "../types";
+import type { Settings, KeyCombo, MousePosition } from "../types";
 import { KeyRecorder } from "./KeyRecorder";
-import { Section } from "./Section";
+import { Switch } from "./Switch";
 
 type Props = {
   s: Settings;
@@ -11,6 +11,8 @@ type Props = {
 };
 
 // 區塊二：按鍵設定 (Attack + Refresh)
+// - 未勾選「自動攻擊」時隱藏 Attack 欄
+// - 未勾選「自動刷新」時隱藏 Refresh 欄
 export function KeyConfig({ s, update, running, duplicateOf, showError }: Props) {
   const disabled = running;
 
@@ -28,67 +30,135 @@ export function KeyConfig({ s, update, running, duplicateOf, showError }: Props)
 
   return (
     <>
-      <Section title="攻擊 (Attack)">
-        <div className="row">
-          <span className="row-label">攻擊鍵</span>
-          <div className="row-value">
-            <KeyRecorder
-              value={s.attackKey}
-              onChange={(v) => setKey("attackKey", v)}
-              disabled={disabled}
-            />
+      {s.attackerMode && (
+        <div className="card">
+          <h3>攻擊 (Attack)</h3>
+          <div className="row">
+            <span className="row-label">攻擊鍵</span>
+            <div className="row-value">
+              <KeyRecorder
+                value={s.attackKey}
+                onChange={(v) => setKey("attackKey", v)}
+                disabled={disabled}
+              />
+            </div>
           </div>
         </div>
-      </Section>
+      )}
 
-      <Section title="刷新 (Refresh)">
-        <div className="row">
-          <span className="row-label">進圈鍵</span>
-          <div className="row-value">
-            <KeyRecorder
-              value={s.enterKey}
-              onChange={(v) => setKey("enterKey", v)}
-              disabled={disabled}
-            />
+      {s.refreshMode && (
+        <div className="card">
+          <h3>刷新 (Refresh)</h3>
+          <div className="row">
+            <span className="row-label">進圈鍵</span>
+            <div className="row-value">
+              <KeyRecorder
+                value={s.enterKey}
+                onChange={(v) => setKey("enterKey", v)}
+                disabled={disabled}
+              />
+            </div>
           </div>
-        </div>
-        <div className="row">
-          <span className="row-label">進圈後等待 (ms)</span>
-          <div className="row-value">
-            <input
-              type="number"
-              className="num"
-              value={s.enterWaitMs}
-              disabled={disabled}
-              min={0}
-              onChange={(e) => update("enterWaitMs", Number(e.target.value) || 0)}
-            />
+          <div className="row">
+            <span className="row-label">進圈後等待 (ms)</span>
+            <div className="row-value">
+              <input
+                type="number"
+                className="num"
+                value={s.enterWaitMs}
+                disabled={disabled}
+                min={0}
+                onChange={(e) => update("enterWaitMs", Number(e.target.value) || 0)}
+              />
+            </div>
           </div>
-        </div>
-        <div className="row">
-          <span className="row-label">出圈鍵</span>
-          <div className="row-value">
-            <KeyRecorder
-              value={s.exitKey}
-              onChange={(v) => setKey("exitKey", v)}
-              disabled={disabled}
-            />
+          <div className="row">
+            <span className="row-label">出圈鍵</span>
+            <div className="row-value">
+              <KeyRecorder
+                value={s.exitKey}
+                onChange={(v) => setKey("exitKey", v)}
+                disabled={disabled}
+              />
+            </div>
           </div>
-        </div>
-        <div className="row">
-          <span className="row-label">出圈後等待 (ms)</span>
-          <div className="row-value">
-            <input
-              type="number"
-              className="num"
-              value={s.exitWaitMs}
-              disabled={disabled}
-              min={0}
-              onChange={(e) => update("exitWaitMs", Number(e.target.value) || 0)}
-            />
+          <div className="row">
+            <span className="row-label">出圈後等待 (ms)</span>
+            <div className="row-value">
+              <input
+                type="number"
+                className="num"
+                value={s.exitWaitMs}
+                disabled={disabled}
+                min={0}
+                onChange={(e) => update("exitWaitMs", Number(e.target.value) || 0)}
+              />
+            </div>
           </div>
+
+          {/* 刷新方向 */}
+          <div className="row">
+            <span className="row-label">刷新方向</span>
+            <div className="row-value radio-group">
+              <label className={`check ${disabled ? "disabled" : ""}`}>
+                <input
+                  type="radio"
+                  checked={s.refreshDirection === "enter-first"}
+                  disabled={disabled}
+                  onChange={() => update("refreshDirection", "enter-first")}
+                />
+                先進圈
+              </label>
+              <label className={`check ${disabled ? "disabled" : ""}`}>
+                <input
+                  type="radio"
+                  checked={s.refreshDirection === "exit-first"}
+                  disabled={disabled}
+                  onChange={() => update("refreshDirection", "exit-first")}
+                />
+                先出圈
+              </label>
+              <button
+                className="btn ghost small"
+                disabled={disabled}
+                onClick={() => update("refreshDirection", null)}
+              >
+                清除
+              </button>
+            </div>
+          </div>
+
+          {/* 自動控制鼠標位置 */}
+          <div className="row">
+            <span className="row-label">自動控制鼠標位置</span>
+            <div className="row-value">
+              <Switch
+                checked={s.mouseControl}
+                disabled={disabled}
+                onChange={(v) => update("mouseControl", v)}
+              />
+            </div>
+          </div>
+          {s.mouseControl && (
+            <div className="row">
+              <span className="row-label">鼠標移動位置</span>
+              <div className="row-value radio-group">
+                {(["1/4", "2/4", "3/4"] as MousePosition[]).map((p) => (
+                  <label key={p} className={`check ${disabled ? "disabled" : ""}`}>
+                    <input
+                      type="radio"
+                      checked={s.mousePosition === p}
+                      disabled={disabled}
+                      onChange={() => update("mousePosition", p)}
+                    />
+                    {p} 處
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      </Section>
+      )}
     </>
   );
 }

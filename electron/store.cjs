@@ -12,8 +12,9 @@ const defaults = {
   alwaysOnTop: false,
   toggleHotkey: null,           // { keys: [...], display: 'Shift+E' }
   hotkeyMode: "listen",         // 'listen' | 'intercept'
-  attackerMode: false,          // 打手模式
-  refreshMode: false,           // 刷新模式
+  attackerMode: false,          // 自動攻擊
+  refreshMode: false,           // 自動刷新
+  buffMode: false,              // 自動 Buff
   refreshDirection: null,       // 'enter-first' | 'exit-first' | null
   attackKey: null,              // { keys: [...], display }
   enterKey: null,
@@ -21,6 +22,9 @@ const defaults = {
   enterWaitMs: 2000,
   exitWaitMs: 1000,
   attackResumeDelay: 30,        // ms
+  // 自動控制鼠標位置 (刷新用)
+  mouseControl: false,
+  mousePosition: "2/4",         // '1/4' | '2/4' | '3/4' 螢幕頂端幾分之幾
   buffs: [],                    // [{ id, name, key, intervalSec, castOnStart, enabled }]
 };
 

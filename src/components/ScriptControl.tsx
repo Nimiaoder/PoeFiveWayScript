@@ -87,7 +87,7 @@ export function ScriptControl({ s, update, running, onStart, onStop, duplicateOf
               disabled={disabled}
               onChange={(e) => update("attackerMode", e.target.checked)}
             />
-            打手模式
+            自動攻擊
           </label>
           <label className={`check ${disabled ? "disabled" : ""}`}>
             <input
@@ -96,39 +96,17 @@ export function ScriptControl({ s, update, running, onStart, onStop, duplicateOf
               disabled={disabled}
               onChange={(e) => update("refreshMode", e.target.checked)}
             />
-            刷新模式
+            自動刷新
           </label>
-        </div>
-
-        <div className="row">
-          <span className="row-label">刷新方向</span>
-          <div className="row-value radio-group">
-            <label className={`check ${disabled ? "disabled" : ""}`}>
-              <input
-                type="radio"
-                checked={s.refreshDirection === "enter-first"}
-                disabled={disabled}
-                onChange={() => update("refreshDirection", "enter-first")}
-              />
-              先進圈
-            </label>
-            <label className={`check ${disabled ? "disabled" : ""}`}>
-              <input
-                type="radio"
-                checked={s.refreshDirection === "exit-first"}
-                disabled={disabled}
-                onChange={() => update("refreshDirection", "exit-first")}
-              />
-              先出圈
-            </label>
-            <button
-              className="btn ghost small"
+          <label className={`check ${disabled ? "disabled" : ""}`}>
+            <input
+              type="checkbox"
+              checked={s.buffMode}
               disabled={disabled}
-              onClick={() => update("refreshDirection", null)}
-            >
-              清除
-            </button>
-          </div>
+              onChange={(e) => update("buffMode", e.target.checked)}
+            />
+            自動 Buff
+          </label>
         </div>
       </Section>
     </>

@@ -1,6 +1,45 @@
-// 腳本狀態機：Attack + Refresh + Buff 排程
+// 腳本狀態機：自動攻擊 + 自動刷新 + 自動 Buff 排程
 // 停止時：立即取消所有 Timer / Wait / 釋放所有按下的鍵
 const keySender = require("./keySender.cjs");
+let nutMouse = null;
+try { nutMouse = require("@nut-tree-fork/nut-js").mouse; } catch {}
+let electronScreen = null;
+try { electronScreen = require("electron").screen; } catch {}
+
+// 自動控制鼠標位置：把鼠標移到目前所在螢幕的頂端 1/4、2/4、3/4 處
+async function moveMouseToTopFraction(pos) {
+  if (!nutMouse || !electronScreen) return;
+
+  const map = {
+    "1/4": 1 / 4,
+    "2/4": 2 / 4,
+    "3/4": 3 / 4,
+  };
+
+  const ratio = map[pos];
+  if (ratio == null) return;
+
+  try {
+    const cur = await nutMouse.getPosition();
+
+    const display = electronScreen.getDisplayNearestPoint({
+      x: Math.round(cur.x),
+      y: Math.round(cur.y),
+    });
+
+    const b = display.bounds;
+
+    const targetX = Math.round(b.x + b.width * ratio);
+    const targetY = b.y;
+
+    await nutMouse.setPosition({
+      x: targetX,
+      y: targetY,
+    });
+  } catch (e) {
+    console.warn("[mouseControl] 移動鼠標失敗：", e.message);
+  }
+}
 
 const HOLD_MS = 40; // 所有模擬按鍵固定按壓 40ms
 
@@ -78,6 +117,10 @@ async function refreshLoop(token) {
   while (running && token === refreshLoopToken) {
     for (const step of seq) {
       if (!running || token !== refreshLoopToken) return;
+      // 進圈/出圈前：如啟用自動控制鼠標位置，先移動鼠標
+      if (config.mouseControl) {
+        await moveMouseToTopFraction(config.mousePosition);
+      }
       // Refresh 具最高優先，透過 enqueue 保證與 Buff 不衝突
       await enqueue(() => executeWithAttackPause(step.keys));
       if (!running || token !== refreshLoopToken) return;
@@ -86,7 +129,7 @@ async function refreshLoop(token) {
   }
 }
 
-// 啟動 Buff 排程
+// 啟動 Buff 排程 (僅在自動 Buff 模式啟用時呼叫)
 function scheduleBuffs() {
   const buffs = (config.buffs || []).filter((b) => b.enabled && b.key?.keys?.length);
   buffs.forEach((buff) => {
@@ -120,18 +163,20 @@ async function start(cfg, win) {
   actionQueue = Promise.resolve();
 
   try {
-    // 打手模式：先按下 Attack
+    // 自動攻擊：先按下 Attack
     if (config.attackerMode && config.attackKey?.keys?.length) {
       await markPress(config.attackKey.keys);
     }
 
-    // 刷新模式
+    // 自動刷新
     if (config.refreshMode) {
       refreshLoop(refreshLoopToken);
     }
 
-    // Buff
-    scheduleBuffs();
+    // 自動 Buff
+    if (config.buffMode) {
+      scheduleBuffs();
+    }
 
     return { ok: true };
   } catch (e) {

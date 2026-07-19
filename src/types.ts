@@ -10,14 +10,17 @@ export type Buff = {
   enabled: boolean;
 };
 
+export type MousePosition = "1/4" | "2/4" | "3/4";
+
 export type Settings = {
   windowBounds: { width: number; height: number; x?: number; y?: number };
   opacity: number;
   alwaysOnTop: boolean;
   toggleHotkey: KeyCombo | null;
   hotkeyMode: "listen" | "intercept";
-  attackerMode: boolean;
-  refreshMode: boolean;
+  attackerMode: boolean;   // 自動攻擊
+  refreshMode: boolean;    // 自動刷新
+  buffMode: boolean;       // 自動 Buff
   refreshDirection: "enter-first" | "exit-first" | null;
   attackKey: KeyCombo | null;
   enterKey: KeyCombo | null;
@@ -25,6 +28,9 @@ export type Settings = {
   enterWaitMs: number;
   exitWaitMs: number;
   attackResumeDelay: number;
+  // 自動控制鼠標位置 (刷新用)
+  mouseControl: boolean;
+  mousePosition: MousePosition;
   buffs: Buff[];
 };
 

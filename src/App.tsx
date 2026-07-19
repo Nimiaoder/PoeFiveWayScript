@@ -91,19 +91,22 @@ export default function App() {
   }, [running, settings]);
 
   // 啟動檢查
-  // 規則:
-  //   - 若有勾選「打手模式」或「刷新模式」→ 依各自模式檢核對應按鍵,不檢核 Buff。
-  //   - 兩者都未勾選 → 視為「純自動上 Buff」模式,需至少有一個已啟用且已設定按鍵的 Buff。
   const validate = (s: Settings): string | null => {
-    if (s.attackerMode && !s.attackKey) return "打手模式需要設定攻擊鍵。";
-    if (s.refreshMode) {
-      if (!s.enterKey) return "刷新模式需要設定進圈鍵。";
-      if (!s.exitKey) return "刷新模式需要設定出圈鍵。";
-      if (!s.refreshDirection) return "刷新模式需要選擇「先進圈」或「先出圈」。";
+    // 至少選擇一種模式
+    if (!s.attackerMode && !s.refreshMode && !s.buffMode) {
+      return "請至少啟用一種模式 (自動攻擊 / 自動刷新 / 自動 Buff)。";
     }
-    if (!s.attackerMode && !s.refreshMode) {
-      const hasBuff = (s.buffs || []).some((b) => b.enabled && b.key);
-      if (!hasBuff) return "未啟用打手/刷新模式時,請至少啟用一個已設定按鍵的 Buff。";
+    if (s.attackerMode && !s.attackKey) return "自動攻擊需要設定攻擊鍵。";
+    if (s.refreshMode) {
+      if (!s.enterKey) return "自動刷新需要設定進圈鍵。";
+      if (!s.exitKey) return "自動刷新需要設定出圈鍵。";
+      if (!s.refreshDirection) return "自動刷新需要選擇「先進圈」或「先出圈」。";
+    }
+    if (s.buffMode) {
+      const usable = (s.buffs || []).filter((b) => b.enabled && b.key?.keys?.length);
+      if (usable.length === 0) {
+        return "自動 Buff 需要至少一個已啟用且已設定按鍵的 Buff。";
+      }
     }
     return null;
   };
@@ -171,14 +174,16 @@ export default function App() {
               duplicateOf={duplicateOf}
               showError={showError}
             />
-            <BuffPanel
-              s={settings}
-              update={update}
-              running={running}
-              duplicateOf={duplicateOf}
-              showError={showError}
-              confirm={confirm}
-            />
+            {settings.buffMode && (
+              <BuffPanel
+                s={settings}
+                update={update}
+                running={running}
+                duplicateOf={duplicateOf}
+                showError={showError}
+                confirm={confirm}
+              />
+            )}
           </>
         )}
         {tab === "settings" && (
