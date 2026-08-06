@@ -6,18 +6,12 @@ try { nutMouse = require("@nut-tree-fork/nut-js").mouse; } catch {}
 let electronScreen = null;
 try { electronScreen = require("electron").screen; } catch {}
 
-// 自動控制鼠標位置：把鼠標移到目前所在螢幕的頂端 1/4、2/4、3/4 處
-async function moveMouseToTopFraction(pos) {
+// 自動控制鼠標位置：
+//   '2/4'    → 目前螢幕頂端正中央
+//   'custom' → 以螢幕正中央為原點，x 軸分 200 份 (-100~100)、y 軸分 100 份 (-50~50)
+//              x=100 為最右、x=-100 為最左；y=50 為最上、y=-50 為最下
+async function moveMouseToPosition(cfg) {
   if (!nutMouse || !electronScreen) return;
-
-  const map = {
-    "1/4": 1 / 4,
-    "2/4": 2 / 4,
-    "3/4": 3 / 4,
-  };
-
-  const ratio = map[pos];
-  if (ratio == null) return;
 
   try {
     const cur = await nutMouse.getPosition();
@@ -28,14 +22,23 @@ async function moveMouseToTopFraction(pos) {
     });
 
     const b = display.bounds;
+    let targetX;
+    let targetY;
 
-    const targetX = Math.round(b.x + b.width * ratio);
-    const targetY = b.y;
+    if (cfg.mousePosition === "custom") {
+      const nx = Math.max(-100, Math.min(100, Number(cfg.mouseCustomX) || 0));
+      const ny = Math.max(-50, Math.min(50, Number(cfg.mouseCustomY) || 0));
+      targetX = Math.round(b.x + b.width / 2 + (b.width / 2) * (nx / 100));
+      targetY = Math.round(b.y + b.height / 2 - (b.height / 2) * (ny / 50));
+      // 夾在螢幕範圍內，避免落在邊界外
+      targetX = Math.max(b.x, Math.min(b.x + b.width - 1, targetX));
+      targetY = Math.max(b.y, Math.min(b.y + b.height - 1, targetY));
+    } else {
+      targetX = Math.round(b.x + b.width / 2);
+      targetY = b.y;
+    }
 
-    await nutMouse.setPosition({
-      x: targetX,
-      y: targetY,
-    });
+    await nutMouse.setPosition({ x: targetX, y: targetY });
   } catch (e) {
     console.warn("[mouseControl] 移動鼠標失敗：", e.message);
   }
@@ -119,7 +122,7 @@ async function refreshLoop(token) {
       if (!running || token !== refreshLoopToken) return;
       // 進圈/出圈前：如啟用自動控制鼠標位置，先移動鼠標
       if (config.mouseControl) {
-        await moveMouseToTopFraction(config.mousePosition);
+        await moveMouseToPosition(config);
       }
       // Refresh 具最高優先，透過 enqueue 保證與 Buff 不衝突
       await enqueue(() => executeWithAttackPause(step.keys));

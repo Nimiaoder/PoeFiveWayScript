@@ -112,6 +112,18 @@ function registerIpc() {
       if (mainWindow) mainWindow.webContents.send("script:toggleRequested");
     });
   });
+  // 註冊隱藏畫面快捷鍵
+  ipcMain.handle("hotkey:bindHide", (_e, combo) => {
+    hotkey.bindHide(combo, () => {
+      if (!mainWindow) return;
+      if (mainWindow.isVisible()) mainWindow.hide();
+      else {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    });
+  });
+
   // 腳本控制
   ipcMain.handle("script:start", (_e, config) => scriptEngine.start(config, mainWindow));
   ipcMain.handle("script:stop", () => scriptEngine.stop());

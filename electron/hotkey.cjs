@@ -12,6 +12,7 @@ try {
 let started = false;
 let captureSession = null; // { win, pressed:Set, onDone }
 let toggleBinding = null;  // { keys:Set, mode:'listen'|'intercept', cb }
+let hideBinding = null;    // { keys:Set, cb } 隱藏/顯示畫面
 let scriptKeyListener = null; // 供 scriptEngine 註冊全域監聽
 
 // uiohook keycode -> 顯示名稱
@@ -114,6 +115,13 @@ function onKeyDown(e) {
     }
   }
 
+  // 隱藏/顯示畫面快捷鍵
+  if (hideBinding) {
+    const current = new Set(heldMods);
+    if (!MODIFIERS.has(name)) current.add(name);
+    if (setsEqual(current, hideBinding.keys)) hideBinding.cb();
+  }
+
   if (scriptKeyListener) scriptKeyListener("down", name);
 }
 
@@ -176,6 +184,15 @@ module.exports = {
     }
     ensureStarted();
     toggleBinding = { keys: new Set(combo.keys), mode, cb };
+  },
+  // 綁定隱藏畫面快捷鍵 (可不設定)
+  bindHide(combo, cb) {
+    if (!combo || !combo.keys || combo.keys.length === 0) {
+      hideBinding = null;
+      return;
+    }
+    ensureStarted();
+    hideBinding = { keys: new Set(combo.keys), cb };
   },
   // 供 scriptEngine 註冊 (若需要)
   setScriptKeyListener(fn) {

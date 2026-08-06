@@ -64,6 +64,7 @@ export default function App() {
       if (!k || !settings) return null;
       const same = (a: KeyCombo | null | undefined) => !!a && a.display === k.display;
       if (exclude !== "toggle" && same(settings.toggleHotkey)) return "啟動快捷鍵";
+      if (exclude !== "hide" && same(settings.hideHotkey)) return "隱藏畫面快捷鍵";
       if (exclude !== "attackKey" && same(settings.attackKey)) return "攻擊鍵";
       if (exclude !== "enterKey" && same(settings.enterKey)) return "進圈鍵";
       if (exclude !== "exitKey" && same(settings.exitKey)) return "出圈鍵";
@@ -82,6 +83,12 @@ export default function App() {
     window.api.bindToggle(settings.toggleHotkey, settings.hotkeyMode);
   }, [settings?.toggleHotkey, settings?.hotkeyMode]);
 
+  // 註冊隱藏畫面快捷鍵 (未啟用時解除綁定)
+  useEffect(() => {
+    if (!settings) return;
+    window.api.bindHide(settings.hideEnabled ? settings.hideHotkey : null);
+  }, [settings?.hideEnabled, settings?.hideHotkey]);
+
   // 收到 toggle 觸發：切換 script
   useEffect(() => {
     return window.api.onToggleRequested(() => {
@@ -92,6 +99,20 @@ export default function App() {
 
   // 啟動檢查
   const validate = (s: Settings): string | null => {
+    // 啟動快捷鍵必須先設定，否則鼠標被頻繁移動時無法用滑鼠關閉
+    if (!s.toggleHotkey || !s.toggleHotkey.keys?.length) {
+      return "請先設定「啟動快捷鍵」才能啟動腳本。";
+    }
+    // 自訂鼠標座標檢核
+    if (s.mouseControl && s.mousePosition === "custom") {
+      const x = s.mouseCustomX;
+      const y = s.mouseCustomY;
+      if (typeof x !== "number" || !Number.isFinite(x) || typeof y !== "number" || !Number.isFinite(y)) {
+        return "自訂鼠標座標必須為數字。";
+      }
+      if (x < -100 || x > 100) return "自訂鼠標座標 X 必須介於 -100 ~ 100。";
+      if (y < -50 || y > 50) return "自訂鼠標座標 Y 必須介於 -50 ~ 50。";
+    }
     // 至少選擇一種模式
     if (!s.attackerMode && !s.refreshMode && !s.buffMode) {
       return "請至少啟用一種模式 (自動攻擊 / 自動刷新 / 自動 Buff)。";
@@ -191,6 +212,7 @@ export default function App() {
             s={settings}
             update={update}
             running={running}
+            duplicateOf={duplicateOf}
             onReset={() =>
               confirm("重設所有設定", "確定要恢復所有設定值嗎？視窗大小與位置不會被重設。", () => reset())
             }

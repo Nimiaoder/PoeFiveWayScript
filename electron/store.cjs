@@ -24,7 +24,13 @@ const defaults = {
   attackResumeDelay: 30,        // ms
   // 自動控制鼠標位置 (刷新用)
   mouseControl: false,
-  mousePosition: "2/4",         // '1/4' | '2/4' | '3/4' 螢幕頂端幾分之幾
+  mousePosition: "2/4",         // '2/4' | 'custom'
+  // 自訂座標：x 軸切 200 份 (-100~100)、y 軸切 100 份 (-50~50)，(0,0) 為螢幕正中央
+  mouseCustomX: 0,
+  mouseCustomY: 0,
+  // 隱藏畫面快捷鍵 (可不設定)
+  hideEnabled: false,
+  hideHotkey: null,
   buffs: [],                    // [{ id, name, key, intervalSec, castOnStart, enabled }]
 };
 
@@ -59,6 +65,10 @@ function load() {
       const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
       const data = JSON.parse(raw);
       cache = { ...defaults, ...data };
+      // 舊版設定遷移：1/4、3/4 選項已移除
+      if (cache.mousePosition !== "2/4" && cache.mousePosition !== "custom") {
+        cache.mousePosition = "2/4";
+      }
     } else {
       cache = { ...defaults };
       persist(cache, /*skipBackup*/ true);

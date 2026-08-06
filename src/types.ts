@@ -10,7 +10,7 @@ export type Buff = {
   enabled: boolean;
 };
 
-export type MousePosition = "1/4" | "2/4" | "3/4";
+export type MousePosition = "2/4" | "custom";
 
 export type Settings = {
   windowBounds: { width: number; height: number; x?: number; y?: number };
@@ -31,6 +31,11 @@ export type Settings = {
   // 自動控制鼠標位置 (刷新用)
   mouseControl: boolean;
   mousePosition: MousePosition;
+  mouseCustomX: number;
+  mouseCustomY: number;
+  // 隱藏畫面 (可不設定)
+  hideEnabled: boolean;
+  hideHotkey: KeyCombo | null;
   buffs: Buff[];
 };
 
@@ -57,6 +62,7 @@ declare global {
         cb: (data: { keys?: string[]; display?: string; cancelled?: boolean; error?: string }) => void
       ) => () => void;
       bindToggle: (combo: KeyCombo | null, mode: "listen" | "intercept") => Promise<void>;
+      bindHide: (combo: KeyCombo | null) => Promise<void>;
       onToggleRequested: (cb: () => void) => () => void;
       startScript: (config: Settings) => Promise<{ ok: boolean; error?: string }>;
       stopScript: () => Promise<{ ok: boolean }>;

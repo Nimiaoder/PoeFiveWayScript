@@ -39,6 +39,8 @@ contextBridge.exposeInMainWorld("api", {
     return () => ipcRenderer.removeListener("script:toggleRequested", listener);
   },
 
+  bindHide: (combo) => ipcRenderer.invoke("hotkey:bindHide", combo),
+
   // 腳本
   startScript: (config) => ipcRenderer.invoke("script:start", config),
   stopScript: () => ipcRenderer.invoke("script:stop"),

@@ -1,18 +1,20 @@
 import { useState } from "react";
-import type { Settings } from "../types";
+import type { Settings, KeyCombo } from "../types";
 import { Switch } from "./Switch";
+import { KeyRecorder } from "./KeyRecorder";
 import { Section } from "./Section";
 
 type Props = {
   s: Settings;
   update: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
   running: boolean;
+  duplicateOf: (k: KeyCombo | null, exclude: string) => string | null;
   onReset: () => void;
   showInfo: (title: string, msg: string, url?: string) => void;
 };
 
 // 設定頁：透明度、置頂、Attack Resume Delay、重設、更新
-export function SettingsPanel({ s, update, running, onReset, showInfo }: Props) {
+export function SettingsPanel({ s, update, running, duplicateOf, onReset, showInfo }: Props) {
   const [checking, setChecking] = useState(false);
 
   // 檢查更新
@@ -72,6 +74,38 @@ export function SettingsPanel({ s, update, running, onReset, showInfo }: Props) 
             />
           </div>
         </div>
+      </Section>
+
+      <Section title="隱藏畫面">
+        <div className="row">
+          <span className="row-label">啟用隱藏畫面快捷鍵</span>
+          <div className="row-value">
+            <Switch
+              checked={s.hideEnabled}
+              onChange={(v) => update("hideEnabled", v)}
+            />
+          </div>
+        </div>
+        {s.hideEnabled && (
+          <div className="row">
+            <span className="row-label">隱藏 / 顯示快捷鍵</span>
+            <div className="row-value">
+              <KeyRecorder
+                value={s.hideHotkey}
+                onChange={(v) => {
+                  if (v) {
+                    const dup = duplicateOf(v, "hide");
+                    if (dup) {
+                      showInfo("無法設定", `此按鍵已綁定於「${dup}」，請選擇其它按鍵。`);
+                      return;
+                    }
+                  }
+                  update("hideHotkey", v);
+                }}
+              />
+            </div>
+          </div>
+        )}
       </Section>
 
       <Section title="執行參數">
