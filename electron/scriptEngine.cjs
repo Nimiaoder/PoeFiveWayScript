@@ -40,6 +40,7 @@ let cancellableWaits = [];            // { t, ms, restart } 讓 stop 立即中�
 let actionQueue = Promise.resolve();  // 序列化所有按鍵動作 (Buff 排隊)
 let heldKeys = [];                    // 目前被按下的鍵 (用於 stop 時全部 KeyUp)
 let riftListenerBound = false;        // 是否已註冊時空裂隙鍵監聽
+let focusedWindow = null;             // 目前焦點所在視窗："attacker" / "aura" / null (未知)
 
 // 可中斷 sleep
 //   resettable = true 時，此等待可被「時空裂隙按鍵」重新計時 (歸零重算)
@@ -183,8 +184,10 @@ async function refreshLoop(token) {
 //   → 等待 n 毫秒 (可被時空裂隙鍵重算)
 //   打手視窗→出圈 → 光環師視窗→出圈 → 回打手視窗→恢復攻擊 → 等待 n 毫秒 → loop
 // 重點：只有鼠標停在打手視窗時才送出攻擊鍵，避免把攻擊打到光環師視窗
-async function focusWindow(point) {
+async function focusWindow(point, which) {
   if (!running) return;
+  // 記錄目前焦點視窗，讓 Buff 能判斷「現在是否在打手視窗」
+  focusedWindow = which || null;
   await moveMouseAbsolute(point);
   if (config.dualRightClickFocus !== false) {
     await rightClickFocus();
@@ -193,7 +196,9 @@ async function focusWindow(point) {
   await sleep(Math.max(0, Number(config.dualFocusDelayMs) || 0));
 }
 
-async function dualPhase(keys, waitMs) {
+// 單次雙人切窗流程 (進圈或出圈)：不含等待時間，
+// 等待放在 queue 外面，讓 Buff 有機會在「已回到打手視窗」的空檔施放
+async function dualPhase(keys) {
   const attackerPos = config.dualAttackerPos;
   const auraPos = config.dualAuraPos;
 
@@ -201,22 +206,19 @@ async function dualPhase(keys, waitMs) {
   await pauseAttack();
 
   // 2) 打手視窗：focus → 送出按鍵
-  await focusWindow(attackerPos);
+  await focusWindow(attackerPos, "attacker");
   if (!running) return;
   await tapKey(keys);
 
   // 3) 光環師視窗：focus → 送出同一個按鍵
-  await focusWindow(auraPos);
+  await focusWindow(auraPos, "aura");
   if (!running) return;
   await tapKey(keys);
 
   // 4) 回到打手視窗：focus → 盡可能持續攻擊
-  await focusWindow(attackerPos);
+  await focusWindow(attackerPos, "attacker");
   if (!running) return;
   await holdAttack();
-
-  // 5) 等待 (可被時空裂隙鍵重算)
-  await sleep(waitMs, true);
 }
 
 async function dualRefreshLoop(token) {
@@ -229,9 +231,12 @@ async function dualRefreshLoop(token) {
   while (running && token === refreshLoopToken) {
     for (const step of seq) {
       if (!running || token !== refreshLoopToken) return;
-      // 雙人流程整段排隊，避免 Buff 插在視窗切換中間造成按鍵打錯視窗
-      await enqueue(() => dualPhase(step.keys, step.waitMs));
+      // 切窗流程整段排隊，避免 Buff 插在視窗切換中間造成按鍵打錯視窗
+      await enqueue(() => dualPhase(step.keys));
       if (!running || token !== refreshLoopToken) return;
+      // 等待放在排隊之外：此時焦點已回到打手視窗，
+      // 等待期間若有 Buff 到期，可立即安全施放 (可被時空裂隙鍵重算)
+      await sleep(step.waitMs, true);
     }
   }
 }
@@ -254,8 +259,21 @@ function scheduleBuffs() {
     const cast = async () => {
       if (!running) return;
       // Buff 使用 enqueue 排隊，不與 Refresh / 其它 Buff 同時送鍵
-      await enqueue(() => executeWithAttackPause(buff.key.keys));
+      await enqueue(async () => {
+        // 雙人模式：Buff 只會在「打手視窗」施放。
+        // 因為切窗流程整段排隊，排到這裡時焦點必定已回到打手視窗，
+        // 也就是說：切到光環師視窗期間到期的 Buff 會「等待」而不是強制切窗打斷。
+        if (isDualMode(config)) {
+          if (focusedWindow !== "attacker") {
+            // 僅在焦點狀態未知 (例如剛啟動、尚未跑過切窗流程) 時才主動聚焦打手視窗
+            await focusWindow(config.dualAttackerPos, "attacker");
+          }
+          if (!running) return;
+        }
+        await executeWithAttackPause(buff.key.keys);
+      });
     };
+
     // 啟動立即施放
     if (buff.castOnStart) cast();
     const tick = () => {
@@ -276,6 +294,7 @@ async function start(cfg, win) {
   running = true;
   refreshLoopToken++;
   buffTimers = [];
+  focusedWindow = null;
   cancellableWaits = [];
   heldKeys = [];
   actionQueue = Promise.resolve();
@@ -285,7 +304,9 @@ async function start(cfg, win) {
     bindRiftListener();
 
     // 自動攻擊：先按下 Attack
+    // 雙人模式：啟動時先把焦點移到「打手視窗」，避免攻擊/Buff 打到光環師視窗
     if (attackUsable()) {
+      if (isDualMode(config)) await focusWindow(config.dualAttackerPos, "attacker");
       await holdAttack();
     }
 

@@ -137,7 +137,9 @@ export function KeyConfig({ s, update, running, duplicateOf, showError }: Props)
             </div>
           </Section>
 
-          {/* 時空裂隙按鍵：手動按下時，把目前等待計時歸零重算 */}
+          {/* 時空裂隙按鍵：手動按下時，把目前等待計時歸零重算
+              僅在「自動攻擊(打手) + 自動刷新」同時勾選時才顯示 */}
+          {dualAvailable && (
           <Section title="時空裂隙(重製秒數)">
             <div className="row">
               <span className="row-label">啟用</span>
@@ -165,6 +167,7 @@ export function KeyConfig({ s, update, running, duplicateOf, showError }: Props)
               按下時空裂隙會把目前「進圈 / 出圈之間的等待」歸零重新計時。
             </div>
           </Section>
+          )}
 
           {/* 雙人刷新模式：僅在「自動攻擊 + 自動刷新」同時開啟時出現 */}
           {dualAvailable && (
