@@ -1,5 +1,5 @@
 // 主行程：建立視窗、載入 UI、註冊 IPC
-const { app, BrowserWindow, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, screen } = require("electron");
 const path = require("path");
 const pkg = require("../package.json");
 const store = require("./store.cjs");
@@ -127,6 +127,14 @@ function registerIpc() {
   // 腳本控制
   ipcMain.handle("script:start", (_e, config) => scriptEngine.start(config, mainWindow));
   ipcMain.handle("script:stop", () => scriptEngine.stop());
+
+  // 擷取滑鼠絕對座標：倒數 delayMs 後回報，讓使用者有時間把滑鼠移到遊戲視窗
+  ipcMain.handle("mouse:capturePosition", async (_e, delayMs) => {
+    const wait = Math.max(0, Number(delayMs) || 0);
+    await new Promise((r) => setTimeout(r, wait));
+    const p = screen.getCursorScreenPoint();
+    return { x: p.x, y: p.y };
+  });
 
   // 檢查更新
   ipcMain.handle("updater:check", () => updater.checkForUpdates(app.getVersion()));

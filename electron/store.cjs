@@ -22,6 +22,15 @@ const defaults = {
   enterWaitMs: 2000,
   exitWaitMs: 1000,
   attackResumeDelay: 30,        // ms
+  // 時空裂隙按鍵：手動按下時重算「進圈/出圈之間的等待」計時
+  riftEnabled: false,
+  riftKey: null,                // { keys: [...], display }
+  // 雙人刷新模式 (需同時勾選 自動攻擊 + 自動刷新 才會顯示)
+  dualRefreshMode: false,
+  dualAttackerPos: null,        // { x, y } 打手視窗的絕對螢幕座標
+  dualAuraPos: null,            // { x, y } 光環師視窗的絕對螢幕座標
+  dualRightClickFocus: true,    // 以右鍵點擊聚焦視窗 (避免左鍵造成角色位移)
+  dualFocusDelayMs: 120,        // 切換視窗後等待多久才送出按鍵
   // 自動控制鼠標位置 (刷新用)
   mouseControl: false,
   mousePosition: "2/4",         // '2/4' | 'custom'

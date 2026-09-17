@@ -490,3 +490,11 @@ input.text:focus { outline: none; border-color: var(--accent); }
   padding-bottom: 12px;
 }
 .card.section.open .section-body { padding-top: 12px; }
+
+/* 雙人刷新模式：已綁定的螢幕座標顯示 */
+.pos-value {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 108px;
+}

@@ -12,6 +12,9 @@ export type Buff = {
 
 export type MousePosition = "2/4" | "custom";
 
+// 絕對螢幕座標 (雙人刷新模式用，支援雙螢幕 / 單螢幕雙視窗)
+export type ScreenPoint = { x: number; y: number };
+
 export type Settings = {
   windowBounds: { width: number; height: number; x?: number; y?: number };
   opacity: number;
@@ -28,6 +31,15 @@ export type Settings = {
   enterWaitMs: number;
   exitWaitMs: number;
   attackResumeDelay: number;
+  // 時空裂隙按鍵 (可開關)：手動按下時重算進圈/出圈等待計時
+  riftEnabled: boolean;
+  riftKey: KeyCombo | null;
+  // 雙人刷新模式 (打手 + 刷新 同時啟用時才可勾選)
+  dualRefreshMode: boolean;
+  dualAttackerPos: ScreenPoint | null;
+  dualAuraPos: ScreenPoint | null;
+  dualRightClickFocus: boolean;
+  dualFocusDelayMs: number;
   // 自動控制鼠標位置 (刷新用)
   mouseControl: boolean;
   mousePosition: MousePosition;
@@ -75,6 +87,8 @@ declare global {
         error?: string;
       }>;
       openExternal: (url: string) => Promise<void>;
+      // 倒數 delayMs 後擷取目前滑鼠的絕對螢幕座標 (綁定雙人視窗位置用)
+      captureMousePosition: (delayMs: number) => Promise<ScreenPoint>;
     };
   }
 }

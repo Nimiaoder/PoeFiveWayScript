@@ -68,6 +68,7 @@ export default function App() {
       if (exclude !== "attackKey" && same(settings.attackKey)) return "攻擊鍵";
       if (exclude !== "enterKey" && same(settings.enterKey)) return "進圈鍵";
       if (exclude !== "exitKey" && same(settings.exitKey)) return "出圈鍵";
+      if (exclude !== "riftKey" && same(settings.riftKey)) return "時空裂隙鍵";
       for (const b of settings.buffs) {
         if (exclude === `buff:${b.id}`) continue;
         if (same(b.key)) return `Buff (${b.name})`;
@@ -122,6 +123,13 @@ export default function App() {
       if (!s.enterKey) return "自動刷新需要設定進圈鍵。";
       if (!s.exitKey) return "自動刷新需要設定出圈鍵。";
       if (!s.refreshDirection) return "自動刷新需要選擇「先進圈」或「先出圈」。";
+      // 時空裂隙重算：啟用時必須設定按鍵
+      if (s.riftEnabled && !s.riftKey) return "已啟用時空裂隙重算，請設定「時空裂隙按鍵」。";
+      // 雙人刷新模式：需同時啟用打手 + 刷新，並綁定兩個視窗座標
+      if (s.dualRefreshMode && s.attackerMode) {
+        if (!s.dualAttackerPos) return "雙人刷新模式需要綁定「打手視窗位置」。";
+        if (!s.dualAuraPos) return "雙人刷新模式需要綁定「光環師視窗位置」。";
+      }
     }
     if (s.buffMode) {
       const usable = (s.buffs || []).filter((b) => b.enabled && b.key?.keys?.length);
