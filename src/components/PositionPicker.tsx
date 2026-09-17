@@ -10,8 +10,9 @@ type Props = {
 };
 
 /**
- * 螢幕座標擷取元件 (雙人刷新模式綁定視窗位置用)
+ * 螢幕座標擷取元件 (雙人刷新模式 / 自動控制鼠標位置 共用)
  * 流程：按下「擷取」→ 倒數 n 秒 → 記錄目前滑鼠的絕對螢幕座標
+ * 擷取後可直接在 X / Y 欄位手動微調 (輸入數字即生效)
  * 使用絕對座標的原因：雙螢幕各一個視窗、或單螢幕兩個視窗都能正確對應
  */
 export function PositionPicker({ value, onChange, disabled, countdownSec = 3 }: Props) {
@@ -42,13 +43,44 @@ export function PositionPicker({ value, onChange, disabled, countdownSec = 3 }: 
     }
   };
 
+  // 手動微調：直接編輯 X / Y (空字串視為 0，非數字忽略)
+  const edit = (axis: "x" | "y", raw: string) => {
+    if (!value) return;
+    const n = raw === "" || raw === "-" ? 0 : Number(raw);
+    if (!Number.isFinite(n)) return;
+    onChange({ ...value, [axis]: Math.round(n) });
+  };
+
   return (
     <>
-      <span className="pos-value">
-        {value ? `X ${value.x} , Y ${value.y}` : "尚未綁定"}
-      </span>
+      {value ? (
+        <span className="pos-edit">
+          <label>
+            X
+            <input
+              type="number"
+              className="num pos-num"
+              value={value.x}
+              disabled={disabled || capturing}
+              onChange={(e) => edit("x", e.target.value)}
+            />
+          </label>
+          <label>
+            Y
+            <input
+              type="number"
+              className="num pos-num"
+              value={value.y}
+              disabled={disabled || capturing}
+              onChange={(e) => edit("y", e.target.value)}
+            />
+          </label>
+        </span>
+      ) : (
+        <span className="pos-value">尚未綁定</span>
+      )}
       <button className="btn small" disabled={disabled || capturing} onClick={capture}>
-        {capturing ? `${left} 秒後擷取…` : "擷取座標"}
+        {capturing ? `${left} 秒後擷取…` : value ? "重新擷取" : "擷取座標"}
       </button>
       {value && (
         <button

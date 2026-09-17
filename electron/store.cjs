@@ -31,12 +31,9 @@ const defaults = {
   dualAuraPos: null,            // { x, y } 光環師視窗的絕對螢幕座標
   dualRightClickFocus: true,    // 以右鍵點擊聚焦視窗 (避免左鍵造成角色位移)
   dualFocusDelayMs: 120,        // 切換視窗後等待多久才送出按鍵
-  // 自動控制鼠標位置 (刷新用)
+  // 自動控制鼠標位置 (刷新用)：絕對螢幕座標，與雙人模式相同的擷取方式
   mouseControl: false,
-  mousePosition: "2/4",         // '2/4' | 'custom'
-  // 自訂座標：x 軸切 200 份 (-100~100)、y 軸切 100 份 (-50~50)，(0,0) 為螢幕正中央
-  mouseCustomX: 0,
-  mouseCustomY: 0,
+  mousePos: null,               // { x, y }
   // 隱藏畫面快捷鍵 (可不設定)
   hideEnabled: false,
   hideHotkey: null,
@@ -74,9 +71,15 @@ function load() {
       const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
       const data = JSON.parse(raw);
       cache = { ...defaults, ...data };
-      // 舊版設定遷移：1/4、3/4 選項已移除
-      if (cache.mousePosition !== "2/4" && cache.mousePosition !== "custom") {
-        cache.mousePosition = "2/4";
+      // 舊版設定遷移：mousePosition / mouseCustomX / mouseCustomY 已改為絕對座標 mousePos
+      delete cache.mousePosition;
+      delete cache.mouseCustomX;
+      delete cache.mouseCustomY;
+      if (cache.mousePos && typeof cache.mousePos === "object") {
+        const { x, y } = cache.mousePos;
+        if (!Number.isFinite(x) || !Number.isFinite(y)) cache.mousePos = null;
+      } else {
+        cache.mousePos = null;
       }
     } else {
       cache = { ...defaults };

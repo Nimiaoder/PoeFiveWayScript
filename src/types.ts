@@ -10,8 +10,6 @@ export type Buff = {
   enabled: boolean;
 };
 
-export type MousePosition = "2/4" | "custom";
-
 // 絕對螢幕座標 (雙人刷新模式用，支援雙螢幕 / 單螢幕雙視窗)
 export type ScreenPoint = { x: number; y: number };
 
@@ -40,11 +38,9 @@ export type Settings = {
   dualAuraPos: ScreenPoint | null;
   dualRightClickFocus: boolean;
   dualFocusDelayMs: number;
-  // 自動控制鼠標位置 (刷新用)
+  // 自動控制鼠標位置 (刷新用)：與雙人模式相同，記錄絕對螢幕座標並可手動微調
   mouseControl: boolean;
-  mousePosition: MousePosition;
-  mouseCustomX: number;
-  mouseCustomY: number;
+  mousePos: ScreenPoint | null;
   // 隱藏畫面 (可不設定)
   hideEnabled: boolean;
   hideHotkey: KeyCombo | null;

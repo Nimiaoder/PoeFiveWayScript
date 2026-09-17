@@ -1,4 +1,4 @@
-import type { Settings, KeyCombo, MousePosition, ScreenPoint } from "../types";
+import type { Settings, KeyCombo, ScreenPoint } from "../types";
 import { KeyRecorder } from "./KeyRecorder";
 import { Switch } from "./Switch";
 import { Section } from "./Section";
@@ -253,47 +253,18 @@ export function KeyConfig({ s, update, running, duplicateOf, showError }: Props)
                 <>
                   <div className="row">
                     <span className="row-label">鼠標移動位置</span>
-                    <div className="row-value radio-group">
-                      {(["2/4", "custom"] as MousePosition[]).map((p) => (
-                        <label key={p} className={`check ${disabled ? "disabled" : ""}`}>
-                          <input
-                            type="radio"
-                            checked={s.mousePosition === p}
-                            disabled={disabled}
-                            onChange={() => update("mousePosition", p)}
-                          />
-                          {p === "custom" ? "自訂" : "2/4 處"}
-                        </label>
-                      ))}
+                    <div className="row-value">
+                      <PositionPicker
+                        value={s.mousePos}
+                        disabled={disabled}
+                        onChange={(v) => update("mousePos", v as ScreenPoint | null)}
+                      />
                     </div>
                   </div>
-                  {s.mousePosition === "custom" && (
-                    <div className="row">
-                      <span className="row-label">自訂座標 (X -100~100 / Y -50~50)</span>
-                      <div className="row-value">
-                        <input
-                          type="number"
-                          className="num"
-                          value={s.mouseCustomX}
-                          disabled={disabled}
-                          min={-100}
-                          max={100}
-                          placeholder="X"
-                          onChange={(e) => update("mouseCustomX", Number(e.target.value))}
-                        />
-                        <input
-                          type="number"
-                          className="num"
-                          value={s.mouseCustomY}
-                          disabled={disabled}
-                          min={-50}
-                          max={50}
-                          placeholder="Y"
-                          onChange={(e) => update("mouseCustomY", Number(e.target.value))}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  <div className="hint">
+                    按「擷取座標」後倒數 3 秒，記錄當下滑鼠的絕對螢幕座標；
+                    之後可直接在 X / Y 欄位手動微調。
+                  </div>
                 </>
               )}
             </Section>

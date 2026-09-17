@@ -104,15 +104,9 @@ export default function App() {
     if (!s.toggleHotkey || !s.toggleHotkey.keys?.length) {
       return "請先設定「啟動快捷鍵」才能啟動腳本。";
     }
-    // 自訂鼠標座標檢核
-    if (s.mouseControl && s.mousePosition === "custom") {
-      const x = s.mouseCustomX;
-      const y = s.mouseCustomY;
-      if (typeof x !== "number" || !Number.isFinite(x) || typeof y !== "number" || !Number.isFinite(y)) {
-        return "自訂鼠標座標必須為數字。";
-      }
-      if (x < -100 || x > 100) return "自訂鼠標座標 X 必須介於 -100 ~ 100。";
-      if (y < -50 || y > 50) return "自訂鼠標座標 Y 必須介於 -50 ~ 50。";
+    // 自動控制鼠標位置：需先綁定座標
+    if (s.mouseControl && !s.mousePos) {
+      return "已啟用「自動控制鼠標位置」，請先擷取鼠標座標。";
     }
     // 至少選擇一種模式
     if (!s.attackerMode && !s.refreshMode && !s.buffMode) {

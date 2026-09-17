@@ -9,47 +9,6 @@ try {
   nutMouse = nut.mouse;
   nutButton = nut.Button;
 } catch {}
-let electronScreen = null;
-try { electronScreen = require("electron").screen; } catch {}
-
-// 自動控制鼠標位置 (單人刷新用)：
-//   '2/4'    → 目前螢幕頂端正中央
-//   'custom' → 以螢幕正中央為原點，x 軸分 200 份 (-100~100)、y 軸分 100 份 (-50~50)
-//              x=100 為最右、x=-100 為最左；y=50 為最上、y=-50 為最下
-async function moveMouseToPosition(cfg) {
-  if (!nutMouse || !electronScreen) return;
-
-  try {
-    const cur = await nutMouse.getPosition();
-
-    const display = electronScreen.getDisplayNearestPoint({
-      x: Math.round(cur.x),
-      y: Math.round(cur.y),
-    });
-
-    const b = display.bounds;
-    let targetX;
-    let targetY;
-
-    if (cfg.mousePosition === "custom") {
-      const nx = Math.max(-100, Math.min(100, Number(cfg.mouseCustomX) || 0));
-      const ny = Math.max(-50, Math.min(50, Number(cfg.mouseCustomY) || 0));
-      targetX = Math.round(b.x + b.width / 2 + (b.width / 2) * (nx / 100));
-      targetY = Math.round(b.y + b.height / 2 - (b.height / 2) * (ny / 50));
-      // 夾在螢幕範圍內，避免落在邊界外
-      targetX = Math.max(b.x, Math.min(b.x + b.width - 1, targetX));
-      targetY = Math.max(b.y, Math.min(b.y + b.height - 1, targetY));
-    } else {
-      targetX = Math.round(b.x + b.width / 2);
-      targetY = b.y;
-    }
-
-    await nutMouse.setPosition({ x: targetX, y: targetY });
-  } catch (e) {
-    console.warn("[mouseControl] 移動鼠標失敗：", e.message);
-  }
-}
-
 // 雙人模式用：移動到「絕對螢幕座標」(支援雙螢幕 / 單螢幕雙視窗)
 async function moveMouseAbsolute(point) {
   if (!nutMouse || !point) return;
@@ -206,8 +165,8 @@ async function refreshLoop(token) {
     for (const step of seq) {
       if (!running || token !== refreshLoopToken) return;
       // 進圈/出圈前：如啟用自動控制鼠標位置，先移動鼠標
-      if (config.mouseControl) {
-        await moveMouseToPosition(config);
+      if (config.mouseControl && config.mousePos) {
+        await moveMouseAbsolute(config.mousePos);
       }
       // Refresh 具最高優先，透過 enqueue 保證與 Buff 不衝突
       await enqueue(() => executeWithAttackPause(step.keys));

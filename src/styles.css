@@ -498,3 +498,14 @@ input.text:focus { outline: none; border-color: var(--accent); }
   font-variant-numeric: tabular-nums;
   min-width: 108px;
 }
+
+/* 已綁定座標：可直接手動微調的 X / Y 欄位 */
+.pos-edit { display: inline-flex; align-items: center; gap: 8px; }
+.pos-edit label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+input.num.pos-num { width: 62px; padding: 4px 6px; }
