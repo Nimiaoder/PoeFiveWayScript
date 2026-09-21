@@ -68,6 +68,7 @@ export default function App() {
       if (exclude !== "attackKey" && same(settings.attackKey)) return "攻擊鍵";
       if (exclude !== "enterKey" && same(settings.enterKey)) return "進圈鍵";
       if (exclude !== "exitKey" && same(settings.exitKey)) return "出圈鍵";
+      if (exclude !== "riftKey" && same(settings.riftKey)) return "時空裂隙鍵";
       for (const b of settings.buffs) {
         if (exclude === `buff:${b.id}`) continue;
         if (same(b.key)) return `Buff (${b.name})`;
@@ -103,15 +104,9 @@ export default function App() {
     if (!s.toggleHotkey || !s.toggleHotkey.keys?.length) {
       return "請先設定「啟動快捷鍵」才能啟動腳本。";
     }
-    // 自訂鼠標座標檢核
-    if (s.mouseControl && s.mousePosition === "custom") {
-      const x = s.mouseCustomX;
-      const y = s.mouseCustomY;
-      if (typeof x !== "number" || !Number.isFinite(x) || typeof y !== "number" || !Number.isFinite(y)) {
-        return "自訂鼠標座標必須為數字。";
-      }
-      if (x < -100 || x > 100) return "自訂鼠標座標 X 必須介於 -100 ~ 100。";
-      if (y < -50 || y > 50) return "自訂鼠標座標 Y 必須介於 -50 ~ 50。";
+    // 自動控制鼠標位置：需先綁定座標
+    if (s.mouseControl && !s.mousePos) {
+      return "已啟用「自動控制鼠標位置」，請先擷取鼠標座標。";
     }
     // 至少選擇一種模式
     if (!s.attackerMode && !s.refreshMode && !s.buffMode) {
@@ -122,6 +117,13 @@ export default function App() {
       if (!s.enterKey) return "自動刷新需要設定進圈鍵。";
       if (!s.exitKey) return "自動刷新需要設定出圈鍵。";
       if (!s.refreshDirection) return "自動刷新需要選擇「先進圈」或「先出圈」。";
+      // 時空裂隙重算：啟用時必須設定按鍵
+      if (s.riftEnabled && !s.riftKey) return "已啟用時空裂隙重算，請設定「時空裂隙按鍵」。";
+      // 雙人刷新模式：需同時啟用打手 + 刷新，並綁定兩個視窗座標
+      if (s.dualRefreshMode && s.attackerMode) {
+        if (!s.dualAttackerPos) return "雙人刷新模式需要綁定「打手視窗位置」。";
+        if (!s.dualAuraPos) return "雙人刷新模式需要綁定「光環師視窗位置」。";
+      }
     }
     if (s.buffMode) {
       const usable = (s.buffs || []).filter((b) => b.enabled && b.key?.keys?.length);

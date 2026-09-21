@@ -48,4 +48,7 @@ contextBridge.exposeInMainWorld("api", {
   // 更新
   checkUpdate: () => ipcRenderer.invoke("updater:check"),
   openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
+
+  // 擷取滑鼠座標 (雙人刷新模式綁定視窗位置)
+  captureMousePosition: (delayMs) => ipcRenderer.invoke("mouse:capturePosition", delayMs),
 });
