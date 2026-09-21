@@ -1,5 +1,12 @@
 // 主行程：建立視窗、載入 UI、註冊 IPC
-const { app, BrowserWindow, ipcMain, shell, screen } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, screen, dialog } = require("electron");
+
+// 單一實例鎖定：防止程式被重複開啟
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  // 已有實例在執行，直接結束這個新開啟的程式
+  app.quit();
+}
 const path = require("path");
 const pkg = require("../package.json");
 const store = require("./store.cjs");
@@ -141,14 +148,36 @@ function registerIpc() {
   ipcMain.handle("shell:openExternal", (_e, url) => shell.openExternal(url));
 }
 
-app.whenReady().then(() => {
-  registerIpc();
-  createWindow();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+if (gotSingleInstanceLock) {
+  // 第二次開啟程式時觸發：
+  // - 視窗處於隱藏狀態 → 直接顯示視窗 (不彈提示)
+  // - 視窗已顯示中 → 彈出提示訊息
+  app.on("second-instance", () => {
+    if (!mainWindow) return;
+    if (!mainWindow.isVisible()) {
+      mainWindow.show();
+      mainWindow.focus();
+      return;
+    }
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+    dialog.showMessageBox(mainWindow, {
+      type: "info",
+      title: "提示",
+      message: "程式已在執行中 請勿重複開啟!",
+      buttons: ["確定"],
+    });
   });
-});
+
+  app.whenReady().then(() => {
+    registerIpc();
+    createWindow();
+
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+  });
+}
 
 // 應用關閉時：停止腳本、卸載鉤子，避免按鍵殘留
 app.on("before-quit", () => {
