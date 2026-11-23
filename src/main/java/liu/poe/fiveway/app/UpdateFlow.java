@@ -1,5 +1,7 @@
 package liu.poe.fiveway.app;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
 import liu.poe.fiveway.config.AppConfig;
 import liu.poe.fiveway.config.AppPaths;
@@ -15,6 +17,7 @@ import java.nio.file.Path;
  * 開發模式或找不到對應附件時，退回「開啟 Release 頁面」(與原版行為相同)。
  */
 public final class UpdateFlow {
+    private static final Logger log = LoggerFactory.getLogger(UpdateFlow.class);
 
     private final AppContext ctx;
     private boolean busy = false;
@@ -94,6 +97,7 @@ public final class UpdateFlow {
                 ctx.updates().download(asset, target, p -> Platform.runLater(() -> ui.setProgress(p)));
                 Platform.runLater(() -> apply(target));
             } catch (Exception e) {
+                log.error("更新檔下載失敗", e);
                 Platform.runLater(() -> {
                     busy = false;
                     ui.closeProgress();
@@ -111,6 +115,7 @@ public final class UpdateFlow {
             // 更新腳本 / 安裝程式已啟動，立刻結束本程式讓它接手
             ctx.host().exitApp();
         } catch (Exception e) {
+            log.error("套用更新失敗", e);
             busy = false;
             ui.closeProgress();
             ui.showMessage(I18n.t("update.failed.title"),

@@ -35,6 +35,19 @@ mvn clean package -Pwin-portable,win-installer
 > `jpackage` 會使用**執行 Maven 的那個 JDK 21** 產生精簡 runtime（jlink）並包進成品，
 > 所以請確認 `java -version` / `JAVA_HOME` 是你要內含的 Java 21。打包必須在 **Windows** 上執行。
 
+### 日誌 (Logback)
+
+- 主控台 (IDE / `mvn javafx:run`) 與檔案同時輸出，設定在 `src/main/resources/logback.xml`
+- 日誌檔：`data/<yyyy-MM-dd>/logs.log`，每天一個資料夾，預設保留 30 天
+  - 開發：`./data/…`　免安裝：exe 同層 `data/…`　安裝版：`%APPDATA%\PoeFiveWayScript\data\…`
+- 在程式碼中使用 `private static final Logger log = LoggerFactory.getLogger(X.class);`
+- Windows 主控台若出現亂碼，可加 JVM 參數 `-Dconsole.charset=MS950`
+
+### 應用程式圖標
+
+- 圖標位置：`src/main/resources/icon/app/icon.ico` (jpackage 打包 exe / 安裝檔使用) 與 `icon.png` (JavaFX 視窗與工作列使用)
+- 換圖直接覆蓋這兩個檔案即可；`icon.ico` 建議內含 16 / 32 / 48 / 256 px
+
 ### 產出位置
 
 | 型態 | 路徑 |

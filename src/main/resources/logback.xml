@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Logback 設定
+    - Console：編譯器 / IDE / mvn javafx:run 的主控台可直接看到
+    - 檔案  ：<資料根目錄>/<yyyy-MM-dd>/logs.log
+              資料根目錄 (app.data.dir) 由 Launcher 在啟動時依發行型態寫入：
+                dev       → ./data
+                portable  → exe 同層 ./data
+                installer → %APPDATA%\PoeFiveWayScript\data
+              每天一個資料夾，跨日自動切換，預設只保留最近 30 天。
+-->
+<configuration>
+
+    <property name="LOG_HOME" value="${app.data.dir:-./data}"/>
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{40} - %msg%n"/>
+    <!-- 主控台編碼：若在 Windows 主控台 (cp950) 看到亂碼，可加 -Dconsole.charset=MS950 -->
+    <property name="CONSOLE_CHARSET" value="${console.charset:-UTF-8}"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>${CONSOLE_CHARSET}</charset>
+        </encoder>
+    </appender>
+
+    <!-- 未設定 <file>：直接寫入 fileNamePattern 對應的「今天」檔案，跨日自動換資料夾 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/logs.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <logger name="liu.poe.fiveway" level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

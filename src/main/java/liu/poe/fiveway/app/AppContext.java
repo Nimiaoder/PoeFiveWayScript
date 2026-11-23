@@ -1,5 +1,7 @@
 package liu.poe.fiveway.app;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -29,6 +31,7 @@ import java.util.function.Consumer;
  * 注意：{@link #update} 等方法只能在 JavaFX 執行緒呼叫。
  */
 public final class AppContext {
+    private static final Logger log = LoggerFactory.getLogger(AppContext.class);
 
     private static AppContext instance;
 
@@ -270,6 +273,7 @@ public final class AppContext {
 
     /** 程式結束前的清理：停止腳本 (放開所有按鍵)、卸載鉤子、寫入設定 */
     public void shutdown() {
+        log.info("程式結束，清理資源");
         try {
             engine.stop();
         } catch (Exception ignored) {

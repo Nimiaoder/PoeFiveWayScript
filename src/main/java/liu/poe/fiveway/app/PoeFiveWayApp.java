@@ -1,5 +1,7 @@
 package liu.poe.fiveway.app;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -7,11 +9,13 @@ import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import liu.poe.fiveway.config.AppConfig;
+import liu.poe.fiveway.config.AppPaths;
 import liu.poe.fiveway.i18n.I18n;
 import liu.poe.fiveway.model.Settings;
 import liu.poe.fiveway.model.WindowBounds;
@@ -19,12 +23,15 @@ import liu.poe.fiveway.ui.MainController;
 import liu.poe.fiveway.ui.WindowManager;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 
 /** JavaFX 應用程式入口：建立無邊框視窗、載入 main.fxml、管理生命週期 */
 public class PoeFiveWayApp extends Application implements AppHost {
+    private static final Logger log = LoggerFactory.getLogger(PoeFiveWayApp.class);
 
     private static final String CSS = "/css/dark-gray.css";
+    private static final String ICON = "/icon/app/icon.png";
 
     private AppContext ctx;
     private Stage stage;
@@ -36,6 +43,8 @@ public class PoeFiveWayApp extends Application implements AppHost {
     @Override
     public void start(Stage primaryStage) {
         this.stage = primaryStage;
+        log.info("{} v{} 啟動 (distribution={}, dataRoot={})",
+                AppConfig.appName(), AppConfig.appVersion(), AppConfig.distribution(), AppPaths.dataRoot());
         ctx = AppContext.create();
         I18n.init(ctx.settings().language);
 
@@ -43,6 +52,7 @@ public class PoeFiveWayApp extends Application implements AppHost {
         boolean first = guard.tryAcquire(AppConfig.singleInstancePort(),
                 () -> Platform.runLater(this::onSecondInstance));
         if (!first) {
+            log.info("偵測到已有執行中的實例，結束本次啟動");
             Platform.exit();
             System.exit(0);
             return;
@@ -53,6 +63,7 @@ public class PoeFiveWayApp extends Application implements AppHost {
 
         stage.initStyle(StageStyle.UNDECORATED);   // 自訂 titlebar
         stage.setTitle(AppConfig.appName() + " v" + AppConfig.appVersion());
+        applyIcon();
         stage.setMinWidth(AppConfig.MIN_WIDTH);
         stage.setMinHeight(AppConfig.MIN_HEIGHT);
 
@@ -84,6 +95,16 @@ public class PoeFiveWayApp extends Application implements AppHost {
             PauseTransition delay = new PauseTransition(Duration.seconds(2));
             delay.setOnFinished(e -> ctx.updateFlow().check(false, null));
             delay.play();
+        }
+    }
+
+    /** 視窗 / 工作列圖標 (JavaFX 不吃 .ico，改用同目錄的 icon.png；exe 的圖標由 jpackage 吃 icon.ico) */
+    private void applyIcon() {
+        try (InputStream in = getClass().getResourceAsStream(ICON)) {
+            if (in != null) stage.getIcons().add(new Image(in));
+            else log.warn("找不到視窗圖標：{}", ICON);
+        } catch (IOException e) {
+            log.warn("載入視窗圖標失敗", e);
         }
     }
 
@@ -144,6 +165,7 @@ public class PoeFiveWayApp extends Application implements AppHost {
 
     @Override
     public void exitApp() {
+        log.info("使用者結束程式");
         guard.close();
         ctx.shutdown();
         Platform.exit();

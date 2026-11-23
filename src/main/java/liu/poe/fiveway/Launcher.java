@@ -1,7 +1,10 @@
 package liu.poe.fiveway;
 
-import liu.poe.fiveway.app.PoeFiveWayApp;
 import javafx.application.Application;
+import liu.poe.fiveway.app.PoeFiveWayApp;
+import liu.poe.fiveway.config.AppPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 實際的程式進入點。
@@ -14,6 +17,13 @@ public final class Launcher {
     }
 
     public static void main(String[] args) {
+        // 必須在第一次取得 Logger 之前設定：logback.xml 以 ${app.data.dir} 決定 logs.log 位置
+        System.setProperty("app.data.dir", AppPaths.dataRoot().toString());
+
+        Logger log = LoggerFactory.getLogger(Launcher.class);
+        Thread.setDefaultUncaughtExceptionHandler(
+                (t, e) -> log.error("未捕捉的例外 (thread={})", t.getName(), e));
+
         Application.launch(PoeFiveWayApp.class, args);
     }
 }

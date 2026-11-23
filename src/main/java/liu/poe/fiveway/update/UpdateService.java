@@ -1,5 +1,7 @@
 package liu.poe.fiveway.update;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,6 +27,7 @@ import java.util.regex.Pattern;
  * 更新來源在 app.properties 的 update.repo 設定 (格式：owner/repo)。
  */
 public final class UpdateService {
+    private static final Logger log = LoggerFactory.getLogger(UpdateService.class);
 
     /** Release 附件 */
     public record Asset(String name, String url, long size) {
@@ -82,6 +85,7 @@ public final class UpdateService {
             Thread.currentThread().interrupt();
             return CheckResult.error(null, e.getMessage());
         } catch (Exception e) {
+            log.warn("檢查更新失敗：{}", e.toString());
             return CheckResult.error(null, e.getMessage());
         }
     }

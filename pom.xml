@@ -19,6 +19,7 @@
         <javafx.version>21.0.5</javafx.version>
         <gson.version>2.11.0</gson.version>
         <jnativehook.version>2.2.2</jnativehook.version>
+        <logback.version>1.5.12</logback.version>
 
         <main.class>liu.poe.fiveway.Launcher</main.class>
         <app.vendor>LiuChenWei</app.vendor>
@@ -26,6 +27,8 @@
         <jpackage.input>${project.build.directory}/jpackage-input</jpackage.input>
         <!-- 更換此 GUID 會讓安裝檔無法「覆蓋升級」舊版，請永遠保持不變 -->
         <win.upgrade.uuid>6f2c1f2e-5b0e-4c52-9d6a-3d1c8b7a4e11</win.upgrade.uuid>
+        <!-- jpackage 使用的 Windows 圖標 (exe / 捷徑 / 安裝檔)；換圖直接覆蓋此檔即可 -->
+        <app.icon>${project.basedir}/src/main/resources/icon/app/icon.ico</app.icon>
     </properties>
 
     <dependencies>
@@ -50,6 +53,12 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
+        </dependency>
+        <!-- 日誌：logback-classic 會一併帶入 slf4j-api 與 logback-core -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
         </dependency>
     </dependencies>
 
@@ -153,6 +162,7 @@
                         <mainJar>${project.artifactId}-${project.version}.jar</mainJar>
                         <mainClass>${main.class}</mainClass>
                         <winConsole>false</winConsole>
+                        <icon>${app.icon}</icon>
                         <!--
                           以「非模組化」方式打包，jpackage 會用「目前執行 Maven 的 JDK (Java 21)」
                           jlink 出一份精簡 JRE 一起包進去，使用者不需另外安裝 Java。

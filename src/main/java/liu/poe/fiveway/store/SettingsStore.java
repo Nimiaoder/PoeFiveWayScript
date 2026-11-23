@@ -1,5 +1,7 @@
 package liu.poe.fiveway.store;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import liu.poe.fiveway.config.AppConfig;
@@ -29,6 +31,7 @@ import java.util.stream.Stream;
  * 寫入採 150ms 防抖，避免 resize/move 密集事件造成大量 IO。
  */
 public class SettingsStore {
+    private static final Logger log = LoggerFactory.getLogger(SettingsStore.class);
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
     private static final long DEBOUNCE_MS = 150;
@@ -58,12 +61,14 @@ public class SettingsStore {
                 Settings s = GSON.fromJson(raw, Settings.class);
                 settings = (s != null) ? s : new Settings();
                 settings.normalize();
+                log.info("已載入設定檔：{}", configFile);
             } else {
                 settings = new Settings();
+                log.info("找不到設定檔，建立預設設定：{}", configFile);
                 save(true);
             }
         } catch (Exception e) {
-            System.err.println("[store] 讀取設定失敗，改用預設值：" + e.getMessage());
+            log.error("[store] 讀取設定失敗，改用預設值", e);
             settings = new Settings();
         }
     }
@@ -92,7 +97,7 @@ public class SettingsStore {
             if (!skip) backupCurrent();
             Files.writeString(configFile, GSON.toJson(settings), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            System.err.println("[store] 寫入失敗：" + e.getMessage());
+            log.error("[store] 寫入設定失敗", e);
         }
     }
 
@@ -113,7 +118,7 @@ public class SettingsStore {
             Files.createDirectories(configFile.getParent());
             Files.createDirectories(backupDir);
         } catch (IOException e) {
-            System.err.println("[store] 建立資料夾失敗：" + e.getMessage());
+            log.error("[store] 建立資料夾失敗", e);
         }
     }
 
@@ -141,7 +146,7 @@ public class SettingsStore {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[store] 備份失敗：" + e.getMessage());
+            log.error("[store] 設定檔備份失敗", e);
         }
     }
 

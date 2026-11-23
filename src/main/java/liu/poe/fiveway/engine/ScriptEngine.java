@@ -1,5 +1,7 @@
 package liu.poe.fiveway.engine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import liu.poe.fiveway.config.AppConfig;
 import liu.poe.fiveway.hotkey.HotkeyService;
 import liu.poe.fiveway.input.KeySender;
@@ -32,6 +34,7 @@ import java.util.concurrent.TimeoutException;
  * 會因 running=false 而自動結束，不會影響新的 Session。
  */
 public final class ScriptEngine {
+    private static final Logger log = LoggerFactory.getLogger(ScriptEngine.class);
 
     private static final String WINDOW_ATTACKER = "attacker";
     private static final String WINDOW_AURA = "aura";
@@ -59,9 +62,10 @@ public final class ScriptEngine {
         session = s;
         try {
             s.begin();
+            log.info("腳本已啟動");
             return StartResult.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("腳本啟動失敗", e);
             s.shutdown();
             return StartResult.failure(null, e.getMessage());
         }
@@ -70,7 +74,11 @@ public final class ScriptEngine {
     /** 停止腳本：立即取消所有 Timer / Wait，釋放所有按下的鍵 */
     public void stop() {
         Session s = session;
-        if (s != null) s.shutdown();
+        if (s != null) {
+            boolean wasRunning = s.running;
+            s.shutdown();
+            if (wasRunning) log.info("腳本已停止");
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -245,7 +253,7 @@ public final class ScriptEngine {
                     w.notifyAll();
                 }
             }
-            System.out.println("[rift] 時空裂隙鍵觸發，重算等待計時 (" + targets.size() + " 筆)");
+            log.info("[rift] 時空裂隙鍵觸發，重算等待計時 ({} 筆)", targets.size());
         }
 
         void bindRiftListener() {
@@ -289,7 +297,7 @@ public final class ScriptEngine {
                     } catch (StopSignal ignored) {
                         // 腳本已停止
                     } catch (Throwable t) {
-                        if (running) t.printStackTrace();
+                        if (running) log.error("腳本動作執行失敗", t);
                     }
                 });
             } catch (RejectedExecutionException e) {
@@ -387,7 +395,7 @@ public final class ScriptEngine {
             } catch (StopSignal ignored) {
                 // 腳本已停止
             } catch (Throwable t) {
-                if (running) t.printStackTrace();
+                if (running) log.error("腳本迴圈發生例外", t);
             }
         }
 
@@ -458,7 +466,7 @@ public final class ScriptEngine {
             } catch (StopSignal ignored) {
                 // 腳本已停止
             } catch (Throwable t) {
-                if (running) t.printStackTrace();
+                if (running) log.error("腳本迴圈發生例外", t);
             }
         }
 

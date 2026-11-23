@@ -30,6 +30,7 @@ import java.util.logging.Logger;
  * 所有回呼都在原生鉤子執行緒上觸發，UI 層請自行 Platform.runLater。
  */
 public final class HotkeyService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HotkeyService.class);
 
     /** 錄製結果 */
     public record CaptureResult(boolean cancelled, String errorKey, List<String> keys, String display) {
@@ -133,7 +134,7 @@ public final class HotkeyService {
             try {
                 onKeyDown(e);
             } catch (Throwable t) {
-                t.printStackTrace();
+                log.error("處理按鍵按下事件失敗", t);
             }
         }
 
@@ -142,7 +143,7 @@ public final class HotkeyService {
             try {
                 onKeyUp(e);
             } catch (Throwable t) {
-                t.printStackTrace();
+                log.error("處理按鍵放開事件失敗", t);
             }
         }
 
@@ -163,8 +164,9 @@ public final class HotkeyService {
             GlobalScreen.registerNativeHook();
             GlobalScreen.addNativeKeyListener(listener);
             started = true;
+            log.info("全域鍵盤鉤子已載入");
         } catch (NativeHookException e) {
-            System.err.println("全域鍵盤鉤子載入失敗: " + e.getMessage());
+            log.error("全域鍵盤鉤子載入失敗", e);
         }
     }
 

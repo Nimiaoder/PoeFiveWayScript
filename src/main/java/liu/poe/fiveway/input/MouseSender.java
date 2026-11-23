@@ -1,5 +1,7 @@
 package liu.poe.fiveway.input;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import liu.poe.fiveway.model.ScreenPoint;
 
 import java.awt.MouseInfo;
@@ -10,6 +12,7 @@ import java.awt.event.InputEvent;
 
 /** 滑鼠模擬與座標擷取 (座標皆為絕對螢幕座標，支援多螢幕) */
 public final class MouseSender {
+    private static final Logger log = LoggerFactory.getLogger(MouseSender.class);
 
     /** 右鍵按下到放開的間隔 (毫秒) */
     private static final int CLICK_HOLD_MS = 20;
@@ -21,7 +24,7 @@ public final class MouseSender {
         try {
             robot.mouseMove(p.x, p.y);
         } catch (Exception e) {
-            System.err.println("[dual] 移動鼠標失敗：" + e.getMessage());
+            log.error("[dual] 移動鼠標失敗", e);
         }
     }
 
@@ -37,7 +40,7 @@ public final class MouseSender {
             robot.delay(CLICK_HOLD_MS);
             robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
         } catch (Exception e) {
-            System.err.println("[dual] 右鍵點擊失敗：" + e.getMessage());
+            log.error("[dual] 右鍵點擊失敗", e);
         }
     }
 
