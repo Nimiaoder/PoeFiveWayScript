@@ -2,7 +2,7 @@
 <!--
   Logback 設定
     - Console：編譯器 / IDE / mvn javafx:run 的主控台可直接看到
-    - 檔案  ：<資料根目錄>/<yyyy-MM-dd>/logs.log
+    - 檔案  ：<資料根目錄>/logs/<yyyy-MM-dd>/logs.log
               資料根目錄 (app.data.dir) 由 Launcher 在啟動時依發行型態寫入：
                 dev       → ./data
                 portable  → exe 同層 ./data
@@ -27,7 +27,7 @@
     <!-- 未設定 <file>：直接寫入 fileNamePattern 對應的「今天」檔案，跨日自動換資料夾 -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/logs.log</fileNamePattern>
+            <fileNamePattern>${LOG_HOME}/logs/%d{yyyy-MM-dd}/logs.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>

@@ -38,8 +38,8 @@ mvn clean package -Pwin-portable,win-installer
 ### 日誌 (Logback)
 
 - 主控台 (IDE / `mvn javafx:run`) 與檔案同時輸出，設定在 `src/main/resources/logback.xml`
-- 日誌檔：`data/<yyyy-MM-dd>/logs.log`，每天一個資料夾，預設保留 30 天
-  - 開發：`./data/…`　免安裝：exe 同層 `data/…`　安裝版：`%APPDATA%\PoeFiveWayScript\data\…`
+- 日誌檔：`data/logs/<yyyy-MM-dd>/logs.log`，每天一個資料夾，預設保留 30 天
+  - 開發：`./data/logs/…`　免安裝：exe 同層 `data/logs/…`　安裝版：`%APPDATA%\PoeFiveWayScript\data\logs\…`
 - 在程式碼中使用 `private static final Logger log = LoggerFactory.getLogger(X.class);`
 - Windows 主控台若出現亂碼，可加 JVM 參數 `-Dconsole.charset=MS950`
 
