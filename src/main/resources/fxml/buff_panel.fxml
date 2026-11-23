@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import liu.poe.fiveway.ui.component.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:id="root" fx:controller="liu.poe.fiveway.ui.BuffPanelController">
+    <Section fx:id="buffSection" title="%section.buff">
+        <extra>
+            <Button fx:id="addBtn" text="%btn.add" styleClass="btn, primary, small"
+                    focusTraversable="false" onAction="#onAdd"/>
+        </extra>
+        <Label fx:id="emptyHint" styleClass="hint" text="%hint.buffEmpty" wrapText="true"/>
+        <VBox fx:id="buffList" spacing="8"/>
+    </Section>
+</VBox>

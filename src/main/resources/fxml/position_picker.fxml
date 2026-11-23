@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root type="javafx.scene.layout.HBox" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="8" alignment="CENTER_RIGHT">
+    <HBox fx:id="posEdit" spacing="8" alignment="CENTER" visible="false" managed="false">
+        <Label text="X" styleClass="pos-label"/>
+        <TextField fx:id="xField" styleClass="num, pos-num" prefWidth="62" alignment="CENTER_RIGHT"/>
+        <Label text="Y" styleClass="pos-label"/>
+        <TextField fx:id="yField" styleClass="num, pos-num" prefWidth="62" alignment="CENTER_RIGHT"/>
+    </HBox>
+    <Label fx:id="posValue" text="%pos.unbound" styleClass="pos-value"/>
+    <Button fx:id="captureBtn" styleClass="btn, small" focusTraversable="false" onAction="#onCapture"/>
+    <Button fx:id="clearBtn" text="%common.clear" styleClass="btn, ghost, small" focusTraversable="false"
+            onAction="#onClear"/>
+</fx:root>

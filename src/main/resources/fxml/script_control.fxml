@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import liu.poe.fiveway.ui.component.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="liu.poe.fiveway.ui.ScriptControlController" spacing="12">
+    <fx:define>
+        <ToggleGroup fx:id="hotkeyModeGroup"/>
+    </fx:define>
+
+    <!-- 腳本控制 -->
+    <Section title="%section.scriptControl">
+        <extra>
+            <HBox fx:id="statusPill" styleClass="status" alignment="CENTER" spacing="6">
+                <Circle styleClass="status-dot" radius="3"/>
+                <Label fx:id="statusLabel"/>
+            </HBox>
+        </extra>
+
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.startStop" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <ToggleSwitch fx:id="runSwitch" onAction="#onRunSwitch"/>
+        </HBox>
+        <HBox styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.hotkey" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <KeyRecorder fx:id="hotkeyRecorder"/>
+        </HBox>
+        <HBox styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.hotkeyMode" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <HBox spacing="16" alignment="CENTER_RIGHT">
+                <RadioButton fx:id="listenRadio" text="%mode.listen" toggleGroup="$hotkeyModeGroup"
+                             focusTraversable="false" onAction="#onListen"/>
+                <RadioButton fx:id="interceptRadio" text="%mode.intercept" toggleGroup="$hotkeyModeGroup"
+                             focusTraversable="false" onAction="#onIntercept"/>
+            </HBox>
+        </HBox>
+    </Section>
+
+    <!-- 模式 -->
+    <Section title="%section.mode">
+        <HBox styleClass="row" spacing="12" alignment="CENTER_LEFT">
+            <CheckBox fx:id="attackerCheck" text="%mode.attacker" focusTraversable="false" onAction="#onAttackerMode"/>
+            <CheckBox fx:id="refreshCheck" text="%mode.refresh" focusTraversable="false" onAction="#onRefreshMode"/>
+            <CheckBox fx:id="buffCheck" text="%mode.buff" focusTraversable="false" onAction="#onBuffMode"/>
+        </HBox>
+    </Section>
+</VBox>

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>liu.poe</groupId>
+    <artifactId>PoeFiveWayScript</artifactId>
+    <!-- Windows 安裝檔版本號只接受 主.次.修 三段數字，請勿加 -SNAPSHOT -->
+    <version>1.1.0</version>
+    <packaging>jar</packaging>
+    <name>PoeFiveWayScript</name>
+    <description>POE 五軍腳本 (JavaFX)</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
+
+        <javafx.version>21.0.5</javafx.version>
+        <gson.version>2.11.0</gson.version>
+        <jnativehook.version>2.2.2</jnativehook.version>
+
+        <main.class>liu.poe.fiveway.Launcher</main.class>
+        <app.vendor>LiuChenWei</app.vendor>
+        <!-- jpackage 的暫存輸入資料夾：主 jar + 所有相依 jar -->
+        <jpackage.input>${project.build.directory}/jpackage-input</jpackage.input>
+        <!-- 更換此 GUID 會讓安裝檔無法「覆蓋升級」舊版，請永遠保持不變 -->
+        <win.upgrade.uuid>6f2c1f2e-5b0e-4c52-9d6a-3d1c8b7a4e11</win.upgrade.uuid>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <!-- 全域鍵盤監聽 (取代 uiohook-napi) -->
+        <dependency>
+            <groupId>com.github.kwhat</groupId>
+            <artifactId>jnativehook</artifactId>
+            <version>${jnativehook.version}</version>
+        </dependency>
+        <!-- JSON 設定檔 / GitHub API -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <!-- 只有 app.properties 會做 ${...} 取代 (版本號)，其餘資源原樣複製 -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>app.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>app.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>21</release>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- 主 jar 直接輸出到 jpackage 的輸入資料夾 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <outputDirectory>${jpackage.input}</outputDirectory>
+                    <archive>
+                        <manifest>
+                            <mainClass>${main.class}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- 把所有 runtime 相依 jar (含 JavaFX 平台 jar) 複製到 jpackage 輸入資料夾 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-deps-for-jpackage</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${jpackage.input}</outputDirectory>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 開發時執行：mvn javafx:run -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>${main.class}</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <!-- jpackage 共用設定；各 profile 只補上 type 與 javaOptions -->
+                <plugin>
+                    <groupId>org.panteleyev</groupId>
+                    <artifactId>jpackage-maven-plugin</artifactId>
+                    <version>1.6.5</version>
+                    <configuration>
+                        <name>${project.name}</name>
+                        <appVersion>${project.version}</appVersion>
+                        <vendor>${app.vendor}</vendor>
+                        <description>${project.description}</description>
+                        <input>${jpackage.input}</input>
+                        <mainJar>${project.artifactId}-${project.version}.jar</mainJar>
+                        <mainClass>${main.class}</mainClass>
+                        <winConsole>false</winConsole>
+                        <!--
+                          以「非模組化」方式打包，jpackage 會用「目前執行 Maven 的 JDK (Java 21)」
+                          jlink 出一份精簡 JRE 一起包進去，使用者不需另外安裝 Java。
+                          這裡列出執行期需要的 JDK 模組；若日後新增功能遇到 ClassNotFoundException，
+                          可用  jdeps -print-module-deps -ignore-missing-deps target/jpackage-input/*.jar  檢查後補上。
+                        -->
+                        <addModules>
+                            <addModule>java.base</addModule>
+                            <addModule>java.desktop</addModule>
+                            <addModule>java.logging</addModule>
+                            <addModule>java.management</addModule>
+                            <addModule>java.naming</addModule>
+                            <addModule>java.net.http</addModule>
+                            <addModule>java.prefs</addModule>
+                            <addModule>java.scripting</addModule>
+                            <addModule>java.sql</addModule>
+                            <addModule>java.xml</addModule>
+                            <addModule>jdk.unsupported</addModule>
+                            <addModule>jdk.crypto.ec</addModule>
+                            <addModule>jdk.jsobject</addModule>
+                            <addModule>jdk.xml.dom</addModule>
+                        </addModules>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <!--
+          可攜式 (免安裝) 版本：mvn clean package -Pwin-portable
+          產出：
+            target/dist/portable/PoeFiveWayScript/PoeFiveWayScript.exe   (資料夾內含 runtime/ 與 app/)
+            target/dist/PoeFiveWayScript-<版本>-portable.zip             (上傳 GitHub Release 用，檔名必須含 "portable")
+        -->
+        <profile>
+            <id>win-portable</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>portable-app-image</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jpackage</goal>
+                                </goals>
+                                <configuration>
+                                    <type>APP_IMAGE</type>
+                                    <destination>${project.build.directory}/dist/portable</destination>
+                                    <javaOptions>
+                                        <option>-Dfile.encoding=UTF-8</option>
+                                        <option>-Dapp.distribution=portable</option>
+                                    </javaOptions>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>zip-portable</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <zip destfile="${project.build.directory}/dist/${project.name}-${project.version}-portable.zip">
+                                            <zipfileset dir="${project.build.directory}/dist/portable/${project.name}"
+                                                        prefix="${project.name}"/>
+                                        </zip>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+          安裝檔版本：mvn clean package -Pwin-installer
+          需先安裝 WiX Toolset 3.x (jpackage 產生 exe/msi 的必要工具) 並加入 PATH。
+          產出：target/dist/installer/PoeFiveWayScript-<版本>.exe
+          兩種都要：mvn clean package -Pwin-portable,win-installer
+        -->
+        <profile>
+            <id>win-installer</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>installer-exe</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jpackage</goal>
+                                </goals>
+                                <configuration>
+                                    <type>EXE</type>
+                                    <destination>${project.build.directory}/dist/installer</destination>
+                                    <winMenu>true</winMenu>
+                                    <winShortcut>true</winShortcut>
+                                    <winDirChooser>true</winDirChooser>
+                                    <winUpgradeUuid>${win.upgrade.uuid}</winUpgradeUuid>
+                                    <javaOptions>
+                                        <option>-Dfile.encoding=UTF-8</option>
+                                        <option>-Dapp.distribution=installer</option>
+                                    </javaOptions>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

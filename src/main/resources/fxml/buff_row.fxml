@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import liu.poe.fiveway.ui.component.*?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="liu.poe.fiveway.ui.BuffRowController" styleClass="buff-row" alignment="CENTER" spacing="12">
+    <ToggleSwitch fx:id="enabledSwitch" onAction="#onToggleEnabled"/>
+    <VBox styleClass="buff-row-info" minWidth="0" HBox.hgrow="ALWAYS" spacing="4">
+        <Label fx:id="nameLabel" styleClass="buff-row-name" maxWidth="Infinity"/>
+        <FlowPane styleClass="buff-row-meta" hgap="6" vgap="4">
+            <Label fx:id="keyTag" styleClass="tag"/>
+            <Label fx:id="intervalTag" styleClass="tag"/>
+            <Button fx:id="castTag" styleClass="tag, tag-toggle" focusTraversable="false" onAction="#onToggleCast"/>
+        </FlowPane>
+    </VBox>
+    <HBox spacing="6" alignment="CENTER_RIGHT" minWidth="-Infinity">
+        <Button fx:id="editBtn" text="%btn.edit" styleClass="btn, small" focusTraversable="false" onAction="#onEdit"/>
+        <Button fx:id="deleteBtn" text="%btn.delete" styleClass="btn, danger, small" focusTraversable="false" onAction="#onDelete"/>
+    </HBox>
+</HBox>

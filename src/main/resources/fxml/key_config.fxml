@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import liu.poe.fiveway.ui.component.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:id="root" fx:controller="liu.poe.fiveway.ui.KeyConfigController" spacing="12">
+    <fx:define>
+        <ToggleGroup fx:id="dirGroup"/>
+    </fx:define>
+
+    <!-- 攻擊 (Attack) -->
+    <Section fx:id="attackSection" title="%section.attack">
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.attackKey" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <KeyRecorder fx:id="attackKey"/>
+        </HBox>
+    </Section>
+
+    <!-- 刷新 (Refresh) -->
+    <Section fx:id="refreshSection" title="%section.refresh">
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.enterKey" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <KeyRecorder fx:id="enterKey"/>
+        </HBox>
+        <HBox styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.enterWait" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="enterWait" styleClass="num" prefWidth="80" alignment="CENTER_RIGHT"/>
+        </HBox>
+        <HBox styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.exitKey" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <KeyRecorder fx:id="exitKey"/>
+        </HBox>
+        <HBox styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.exitWait" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="exitWait" styleClass="num" prefWidth="80" alignment="CENTER_RIGHT"/>
+        </HBox>
+        <HBox styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.direction" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <HBox spacing="16" alignment="CENTER_RIGHT">
+                <RadioButton fx:id="dirEnter" text="%dir.enterFirst" toggleGroup="$dirGroup"
+                             focusTraversable="false" onAction="#onDirEnter"/>
+                <RadioButton fx:id="dirExit" text="%dir.exitFirst" toggleGroup="$dirGroup"
+                             focusTraversable="false" onAction="#onDirExit"/>
+                <Button fx:id="dirClear" text="%common.clear" styleClass="btn, ghost, small"
+                        focusTraversable="false" onAction="#onDirClear"/>
+            </HBox>
+        </HBox>
+    </Section>
+
+    <!-- 時空裂隙(重製秒數)：僅在「自動攻擊 + 自動刷新」同時勾選時顯示 -->
+    <Section fx:id="riftSection" title="%section.rift">
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.enable" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <ToggleSwitch fx:id="riftSwitch" onAction="#onRiftSwitch"/>
+        </HBox>
+        <HBox fx:id="riftKeyRow" styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.riftKey" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <KeyRecorder fx:id="riftKey"/>
+        </HBox>
+        <Label styleClass="hint" text="%hint.rift" wrapText="true"/>
+    </Section>
+
+    <!-- 雙人刷新模式：僅在「自動攻擊 + 自動刷新」同時開啟時出現 -->
+    <Section fx:id="dualSection" title="%section.dual">
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.dualEnable" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <ToggleSwitch fx:id="dualSwitch" onAction="#onDualSwitch"/>
+        </HBox>
+        <VBox fx:id="dualDetail">
+            <HBox styleClass="row, row-sep">
+                <Label styleClass="row-label" text="%row.attackerPos" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <PositionPicker fx:id="attackerPos"/>
+            </HBox>
+            <HBox styleClass="row, row-sep">
+                <Label styleClass="row-label" text="%row.auraPos" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <PositionPicker fx:id="auraPos"/>
+            </HBox>
+            <HBox styleClass="row, row-sep">
+                <Label styleClass="row-label" text="%row.rightClickFocus" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <ToggleSwitch fx:id="rightClickSwitch" onAction="#onRightClickSwitch"/>
+            </HBox>
+            <HBox styleClass="row, row-sep">
+                <Label styleClass="row-label" text="%row.focusDelay" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="focusDelay" styleClass="num" prefWidth="80" alignment="CENTER_RIGHT"/>
+            </HBox>
+            <Label styleClass="hint" text="%hint.dual" wrapText="true"/>
+        </VBox>
+    </Section>
+
+    <!-- 自動控制鼠標位置 (單人刷新用；雙人模式下不適用) -->
+    <Section fx:id="mouseSection" title="%section.mouse">
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.enable" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <ToggleSwitch fx:id="mouseSwitch" onAction="#onMouseSwitch"/>
+        </HBox>
+        <VBox fx:id="mouseDetail">
+            <HBox styleClass="row, row-sep">
+                <Label styleClass="row-label" text="%row.mousePos" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <PositionPicker fx:id="mousePos"/>
+            </HBox>
+            <Label styleClass="hint" text="%hint.mouse" wrapText="true"/>
+        </VBox>
+    </Section>
+</VBox>

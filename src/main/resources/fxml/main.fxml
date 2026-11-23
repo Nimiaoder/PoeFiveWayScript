@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="liu.poe.fiveway.ui.MainController" styleClass="app-root">
+    <fx:define>
+        <ToggleGroup fx:id="tabGroup"/>
+    </fx:define>
+
+    <VBox>
+        <!-- 自訂標題列 -->
+        <fx:include fx:id="titleBar" source="titlebar.fxml"/>
+
+        <!-- 分頁：主頁 / 設定 -->
+        <HBox styleClass="tabs" spacing="4">
+            <VBox.margin>
+                <Insets top="12" left="16" right="16"/>
+            </VBox.margin>
+            <ToggleButton fx:id="homeTab" text="%tab.home" styleClass="tab" toggleGroup="$tabGroup"
+                          selected="true" focusTraversable="false" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <ToggleButton fx:id="settingsTab" text="%tab.settings" styleClass="tab" toggleGroup="$tabGroup"
+                          focusTraversable="false" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        </HBox>
+
+        <StackPane VBox.vgrow="ALWAYS">
+            <ScrollPane fx:id="homeScroll" styleClass="content" fitToWidth="true" hbarPolicy="NEVER">
+                <VBox styleClass="content-box" spacing="12">
+                    <fx:include fx:id="scriptControl" source="script_control.fxml"/>
+                    <fx:include fx:id="keyConfig" source="key_config.fxml"/>
+                    <fx:include fx:id="buffPanel" source="buff_panel.fxml"/>
+                </VBox>
+            </ScrollPane>
+
+            <ScrollPane fx:id="settingsScroll" styleClass="content" fitToWidth="true" hbarPolicy="NEVER"
+                        visible="false" managed="false">
+                <VBox styleClass="content-box" spacing="12">
+                    <fx:include fx:id="settingsPanel" source="settings_panel.fxml"/>
+                </VBox>
+            </ScrollPane>
+        </StackPane>
+    </VBox>
+
+    <!-- 覆蓋層：Buff 編輯視窗在下，通用對話框在最上 -->
+    <fx:include fx:id="buffEditor" source="buff_editor.fxml"/>
+    <fx:include fx:id="dialog" source="dialog.fxml"/>
+</StackPane>

@@ -1,0 +1,589 @@
+/* ============================================================
+ * 黑灰色系主題 (取代原版 Windows 11 Fluent 藍色深色主題)
+ * JavaFX CSS 沒有 var()，顏色統一以「查詢色 (looked-up color)」定義在 .root
+ * ============================================================ */
+
+.root {
+    -bg: #121212;
+    -bg-elev: #1b1b1b;
+    -bg-elev-2: #252525;
+    -bg-hover: #303030;
+    -titlebar: #0a0a0a;
+    -border: rgba(255, 255, 255, 0.08);
+    -border-strong: rgba(255, 255, 255, 0.16);
+    -text: #e8e8e8;
+    -text-muted: #8e8e8e;
+    -accent: #c8c8c8;
+    -accent-hover: #e2e2e2;
+    -danger: #b94a4a;
+    -danger-hover: #cc5c5c;
+    -slider-track: #444444;
+
+    /* 覆蓋 Modena 預設的亮色基底 */
+    -fx-base: #252525;
+    -fx-background: #121212;
+    -fx-control-inner-background: #252525;
+    -fx-accent: #c8c8c8;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-text-base-color: #e8e8e8;
+    -fx-font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft YaHei UI", sans-serif;
+    -fx-font-size: 14px;
+}
+
+.app-root {
+    -fx-background-color: -bg;
+}
+
+.label {
+    -fx-text-fill: -text;
+}
+
+/* ===== 自訂標題列 ===== */
+.titlebar {
+    -fx-background-color: -titlebar;
+    -fx-border-color: transparent transparent -border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-min-height: 32;
+    -fx-pref-height: 32;
+    -fx-max-height: 32;
+}
+.titlebar-drag {
+    -fx-padding: 0 12 0 12;
+}
+.titlebar-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -text;
+}
+.titlebar-version {
+    -fx-font-size: 11px;
+    -fx-text-fill: -text-muted;
+    -fx-padding: 0 0 0 8;
+}
+.tb-btn {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+    -fx-min-width: 46;
+    -fx-pref-width: 46;
+    -fx-min-height: 32;
+    -fx-pref-height: 32;
+    -fx-cursor: default;
+}
+.tb-btn:hover {
+    -fx-background-color: -bg-hover;
+}
+.tb-close:hover {
+    -fx-background-color: -danger;
+}
+.icon-fill {
+    -fx-fill: -text-muted;
+    -fx-stroke: transparent;
+}
+.icon-stroke {
+    -fx-fill: transparent;
+    -fx-stroke: -text-muted;
+    -fx-stroke-width: 1;
+}
+.tb-btn:hover .icon-fill {
+    -fx-fill: -text;
+}
+.tb-btn:hover .icon-stroke {
+    -fx-stroke: -text;
+}
+
+/* ===== 分頁 ===== */
+.tabs {
+    -fx-background-color: -bg-elev;
+    -fx-background-radius: 8;
+    -fx-border-color: -border;
+    -fx-border-radius: 8;
+    -fx-padding: 4;
+}
+.tab {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6;
+    -fx-text-fill: -text-muted;
+    -fx-padding: 8 12 8 12;
+    -fx-cursor: hand;
+}
+.tab:hover {
+    -fx-background-color: -bg-hover;
+    -fx-text-fill: -text;
+}
+.tab:selected {
+    -fx-background-color: -bg-elev-2;
+    -fx-border-color: -border-strong;
+    -fx-text-fill: -text;
+}
+
+/* ===== 捲動區 ===== */
+.content,
+.content > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.content-box {
+    -fx-padding: 12 16 16 16;
+}
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.scroll-bar:vertical {
+    -fx-pref-width: 8;
+}
+.scroll-bar .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.scroll-bar .thumb {
+    -fx-background-color: #444444;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+}
+.scroll-bar .thumb:hover {
+    -fx-background-color: #5a5a5a;
+}
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-padding: 0;
+    -fx-shape: " ";
+}
+
+/* ===== 卡片 / 區塊 ===== */
+.card {
+    -fx-background-color: -bg-elev;
+    -fx-background-radius: 12;
+    -fx-border-color: -border;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 16, 0, 0, 6);
+}
+.section-header {
+    -fx-padding: 14 16 14 16;
+    -fx-background-radius: 12;
+}
+.section-header:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+}
+.section-header:open {
+    -fx-padding: 14 16 12 16;
+    -fx-background-radius: 12 12 0 0;
+    -fx-border-color: transparent transparent -border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -text;
+}
+.section-chev {
+    -fx-fill: transparent;
+    -fx-stroke: -text-muted;
+    -fx-stroke-width: 1.5;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+.section-extra {
+    -fx-alignment: center-right;
+}
+.section-body {
+    -fx-padding: 12 16 14 16;
+}
+
+.row {
+    -fx-padding: 8 0 8 0;
+    -fx-alignment: center-left;
+    -fx-spacing: 12;
+}
+.row-sep {
+    -fx-border-color: -border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+.row-label {
+    -fx-text-fill: -text-muted;
+    -fx-font-size: 13px;
+}
+.hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-muted;
+    -fx-padding: 6 0 0 0;
+}
+
+/* ===== 開關 ===== */
+.toggle-switch {
+    -fx-background-color: #4a4a4a;
+    -fx-background-radius: 10;
+}
+.toggle-switch:on {
+    -fx-background-color: -accent;
+}
+.toggle-switch:disabled {
+    -fx-opacity: 0.5;
+}
+.toggle-thumb {
+    -fx-fill: #ffffff;
+}
+.toggle-switch:on .toggle-thumb {
+    -fx-fill: #1b1b1b;
+}
+
+/* ===== 按鈕 ===== */
+.btn {
+    -fx-background-color: -bg-elev-2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-border-color: -border-strong;
+    -fx-border-radius: 6;
+    -fx-text-fill: -text;
+    -fx-padding: 8 16 8 16;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+.btn:hover {
+    -fx-background-color: -bg-hover;
+    -fx-border-color: -accent;
+}
+.btn:disabled {
+    -fx-opacity: 0.5;
+}
+.btn.primary {
+    -fx-background-color: -accent;
+    -fx-border-color: -accent;
+    -fx-text-fill: #101010;
+}
+.btn.primary:hover {
+    -fx-background-color: -accent-hover;
+    -fx-border-color: -accent-hover;
+}
+.btn.danger {
+    -fx-background-color: -danger;
+    -fx-border-color: -danger;
+    -fx-text-fill: #ffffff;
+}
+.btn.danger:hover {
+    -fx-background-color: -danger-hover;
+    -fx-border-color: -danger-hover;
+}
+.btn.ghost {
+    -fx-background-color: transparent;
+}
+.btn.ghost:hover {
+    -fx-background-color: -bg-hover;
+}
+.btn.small {
+    -fx-padding: 4 10 4 10;
+    -fx-font-size: 12px;
+}
+
+/* ===== 按鍵錄製 ===== */
+.key-btn {
+    -fx-background-color: -bg-elev-2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-border-color: -border-strong;
+    -fx-border-radius: 6;
+    -fx-text-fill: -text;
+    -fx-font-family: "Cascadia Code", "Consolas", monospace;
+    -fx-font-size: 12px;
+    -fx-padding: 6 28 6 12;
+    -fx-min-width: 110;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+}
+.key-btn:hover {
+    -fx-border-color: -accent;
+}
+.key-btn.recording {
+    -fx-border-color: -accent;
+    -fx-background-color: rgba(200, 200, 200, 0.16);
+}
+.key-btn.empty {
+    -fx-text-fill: -text-muted;
+}
+.key-btn:disabled {
+    -fx-opacity: 0.5;
+}
+.key-btn-clear {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
+    -fx-padding: 0;
+    -fx-min-width: 16;
+    -fx-pref-width: 16;
+    -fx-max-width: 16;
+    -fx-min-height: 16;
+    -fx-pref-height: 16;
+    -fx-max-height: 16;
+    -fx-cursor: hand;
+}
+.key-btn-clear:hover {
+    -fx-background-color: -danger;
+}
+.key-btn-clear:hover .icon-stroke {
+    -fx-stroke: #ffffff;
+}
+
+/* ===== 輸入框 ===== */
+.text-field {
+    -fx-background-color: -bg-elev-2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-border-color: -border-strong;
+    -fx-border-radius: 6;
+    -fx-text-fill: -text;
+    -fx-prompt-text-fill: -text-muted;
+    -fx-highlight-fill: #5a5a5a;
+    -fx-highlight-text-fill: #ffffff;
+    -fx-padding: 6 8 6 8;
+    -fx-font-size: 13px;
+}
+.text-field:focused {
+    -fx-border-color: -accent;
+}
+.text-field:disabled {
+    -fx-opacity: 0.5;
+}
+.pos-num {
+    -fx-padding: 4 6 4 6;
+}
+.pos-label,
+.pos-value {
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-muted;
+}
+.pos-value {
+    -fx-min-width: 108;
+}
+
+/* ===== 勾選 / 單選 ===== */
+.check-box,
+.radio-button {
+    -fx-text-fill: -text;
+}
+.check-box:disabled,
+.radio-button:disabled {
+    -fx-opacity: 0.5;
+}
+.check-box .box {
+    -fx-background-color: -bg-elev-2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-color: -border-strong;
+    -fx-border-radius: 3;
+}
+.check-box:selected .box {
+    -fx-background-color: -accent;
+    -fx-border-color: -accent;
+}
+.check-box .mark {
+    -fx-background-color: transparent;
+}
+.check-box:selected .mark {
+    -fx-background-color: #101010;
+}
+.radio-button .radio {
+    -fx-background-color: -bg-elev-2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 1em;
+    -fx-border-color: -border-strong;
+    -fx-border-radius: 1em;
+}
+.radio-button:selected .radio {
+    -fx-border-color: -accent;
+}
+.radio-button .dot {
+    -fx-background-color: transparent;
+}
+.radio-button:selected .dot {
+    -fx-background-color: -accent;
+}
+
+/* ===== 滑桿 ===== */
+.slider .track {
+    -fx-background-color: -slider-track;
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-padding: 0.15em;
+}
+.slider .thumb {
+    -fx-background-color: -accent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
+    -fx-padding: 8;
+}
+.slider:hover .thumb {
+    -fx-background-color: -accent-hover;
+}
+
+/* ===== 下拉選單 (彈出視窗是獨立視窗，這裡使用固定色碼) ===== */
+.combo-box {
+    -fx-background-color: -bg-elev-2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-border-color: -border-strong;
+    -fx-border-radius: 6;
+}
+.combo-box:hover {
+    -fx-border-color: -accent;
+}
+.combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e8e8e8;
+    -fx-font-size: 13px;
+}
+.combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+.combo-box .arrow {
+    -fx-background-color: #8e8e8e;
+}
+.combo-box-popup .list-view {
+    -fx-background-color: #252525;
+    -fx-border-color: #4a4a4a;
+    -fx-background-insets: 0;
+}
+.combo-box-popup .list-cell {
+    -fx-background-color: #252525;
+    -fx-text-fill: #e8e8e8;
+    -fx-padding: 6 10 6 10;
+}
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-fill: #ffffff;
+}
+
+/* ===== Buff 列表 ===== */
+.buff-row {
+    -fx-background-color: -bg-elev-2;
+    -fx-background-radius: 8;
+    -fx-border-color: -border;
+    -fx-border-radius: 8;
+    -fx-padding: 10 12 10 12;
+}
+.buff-row-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: -text;
+}
+.tag {
+    -fx-font-size: 11px;
+    -fx-padding: 2 8 2 8;
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-text-fill: -text-muted;
+    -fx-font-family: "Cascadia Code", "Consolas", monospace;
+}
+.tag-toggle {
+    -fx-border-color: -border;
+    -fx-border-radius: 10;
+    -fx-cursor: hand;
+    -fx-font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft YaHei UI", sans-serif;
+}
+.tag-toggle:hover {
+    -fx-border-color: -accent;
+    -fx-text-fill: -accent;
+}
+.tag-toggle:disabled {
+    -fx-opacity: 0.6;
+}
+.tag-toggle.tag-accent {
+    -fx-background-color: rgba(200, 200, 200, 0.16);
+    -fx-text-fill: -accent;
+    -fx-border-color: -accent;
+}
+
+/* ===== 對話框 ===== */
+.dialog-backdrop {
+    -fx-background-color: rgba(0, 0, 0, 0.55);
+}
+.dialog {
+    -fx-background-color: -bg-elev;
+    -fx-background-radius: 12;
+    -fx-border-color: -border-strong;
+    -fx-border-radius: 12;
+    -fx-padding: 20;
+    -fx-spacing: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 36, 0, 0, 12);
+}
+.dialog-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -text;
+}
+.dialog-message {
+    -fx-text-fill: -text-muted;
+    -fx-line-spacing: 3;
+    -fx-padding: 0 0 6 0;
+}
+.dialog-actions {
+    -fx-alignment: center-right;
+    -fx-spacing: 8;
+    -fx-padding: 8 0 0 0;
+}
+.form-row {
+    -fx-alignment: center-left;
+    -fx-spacing: 12;
+    -fx-padding: 0 0 12 0;
+}
+.form-label {
+    -fx-text-fill: -text-muted;
+    -fx-font-size: 13px;
+    -fx-min-width: 88;
+}
+
+/* ===== 進度條 (下載更新) ===== */
+.progress-bar .track {
+    -fx-background-color: #444444;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+}
+.progress-bar .bar {
+    -fx-background-color: -accent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-padding: 4;
+}
+
+/* ===== 狀態徽章 ===== */
+.status {
+    -fx-background-color: -bg-elev-2;
+    -fx-background-radius: 10;
+    -fx-padding: 2 8 2 8;
+}
+.status .label {
+    -fx-font-size: 11px;
+    -fx-text-fill: -text-muted;
+}
+.status-dot {
+    -fx-fill: -text-muted;
+}
+.status:on {
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+}
+.status:on .label {
+    -fx-text-fill: #ffffff;
+}
+.status:on .status-dot {
+    -fx-fill: #ffffff;
+}
+
+/* ===== 提示文字 ===== */
+.tooltip {
+    -fx-background-color: #2e2e2e;
+    -fx-text-fill: #e8e8e8;
+    -fx-font-size: 12px;
+}

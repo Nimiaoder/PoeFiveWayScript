@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import liu.poe.fiveway.ui.component.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="liu.poe.fiveway.ui.SettingsPanelController" spacing="12">
+    <!-- 顯示 -->
+    <Section title="%section.display">
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.opacity" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <HBox spacing="8" alignment="CENTER_RIGHT" maxWidth="220">
+                <Slider fx:id="opacitySlider" styleClass="slider" min="0.3" max="1" prefWidth="160" focusTraversable="false"/>
+                <Label fx:id="opacityLabel" styleClass="opacity-label" minWidth="40" alignment="CENTER_RIGHT"/>
+            </HBox>
+        </HBox>
+        <HBox styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.alwaysOnTop" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <ToggleSwitch fx:id="alwaysOnTopSwitch" onAction="#onAlwaysOnTop"/>
+        </HBox>
+        <HBox styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.language" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <ComboBox fx:id="languageCombo" focusTraversable="false" prefWidth="140"/>
+        </HBox>
+    </Section>
+
+    <!-- 隱藏畫面 -->
+    <Section title="%section.hide">
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.hideEnable" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <ToggleSwitch fx:id="hideSwitch" onAction="#onHideSwitch"/>
+        </HBox>
+        <HBox fx:id="hideRow" styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.hideHotkey" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <KeyRecorder fx:id="hideRecorder"/>
+        </HBox>
+    </Section>
+
+    <!-- 執行參數 -->
+    <Section title="%section.params">
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.resumeDelay" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="resumeDelayField" styleClass="num" prefWidth="80" alignment="CENTER_RIGHT"/>
+        </HBox>
+    </Section>
+
+    <!-- 其它 -->
+    <Section title="%section.other">
+        <HBox styleClass="row">
+            <Label styleClass="row-label" text="%row.reset" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="resetBtn" text="%btn.reset" styleClass="btn, danger, small"
+                    focusTraversable="false" onAction="#onReset"/>
+        </HBox>
+        <HBox styleClass="row, row-sep">
+            <Label styleClass="row-label" text="%row.checkUpdate" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="checkBtn" styleClass="btn, small" focusTraversable="false" onAction="#onCheckUpdate"/>
+        </HBox>
+    </Section>
+</VBox>

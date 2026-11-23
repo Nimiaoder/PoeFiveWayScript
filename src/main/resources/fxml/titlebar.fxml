@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="liu.poe.fiveway.ui.TitleBarController" styleClass="titlebar" alignment="CENTER_LEFT">
+    <HBox fx:id="dragArea" styleClass="titlebar-drag" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS"
+          onMousePressed="#onDragPressed" onMouseDragged="#onDragged" onMouseClicked="#onDragClicked">
+        <Label fx:id="titleLabel" styleClass="titlebar-title"/>
+        <Label fx:id="versionLabel" styleClass="titlebar-version"/>
+    </HBox>
+
+    <!-- 最小化 -->
+    <Button styleClass="tb-btn" focusTraversable="false" onAction="#onMinimize">
+        <graphic>
+            <SVGPath styleClass="icon-fill" content="M0 4.5 H10 V5.5 H0 Z"/>
+        </graphic>
+    </Button>
+    <!-- 最大化 / 還原 -->
+    <Button styleClass="tb-btn" focusTraversable="false" onAction="#onToggleMaximize">
+        <graphic>
+            <StackPane>
+                <SVGPath fx:id="maxIcon" styleClass="icon-stroke" content="M0.5 0.5 H9.5 V9.5 H0.5 Z"/>
+                <SVGPath fx:id="restoreIcon" styleClass="icon-stroke" visible="false" managed="false"
+                         content="M1 2.5 H7.5 V9 H1 Z M2.5 1 H9 V7.5 H2.5 Z"/>
+            </StackPane>
+        </graphic>
+    </Button>
+    <!-- 關閉 -->
+    <Button styleClass="tb-btn, tb-close" focusTraversable="false" onAction="#onClose">
+        <graphic>
+            <SVGPath styleClass="icon-stroke" content="M1 1 L9 9 M9 1 L1 9"/>
+        </graphic>
+    </Button>
+</HBox>

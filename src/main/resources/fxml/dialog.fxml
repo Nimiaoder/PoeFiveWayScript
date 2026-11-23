@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:id="backdrop" fx:controller="liu.poe.fiveway.ui.DialogController"
+           styleClass="dialog-backdrop" visible="false" managed="false" onMouseClicked="#onBackdropClick">
+    <VBox styleClass="dialog" maxWidth="-Infinity" maxHeight="-Infinity" prefWidth="380"
+          onMouseClicked="#consume">
+        <Label fx:id="titleLabel" styleClass="dialog-title"/>
+        <Label fx:id="messageLabel" styleClass="dialog-message" wrapText="true"/>
+        <ProgressBar fx:id="progressBar" maxWidth="Infinity" visible="false" managed="false"/>
+        <HBox fx:id="actions" styleClass="dialog-actions">
+            <Button fx:id="cancelBtn" styleClass="btn, ghost" focusTraversable="false" onAction="#onCancel"/>
+            <Button fx:id="confirmBtn" styleClass="btn, primary" focusTraversable="false" onAction="#onConfirm"/>
+        </HBox>
+    </VBox>
+</StackPane>

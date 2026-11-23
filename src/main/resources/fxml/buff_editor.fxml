@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import liu.poe.fiveway.ui.component.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:id="backdrop" fx:controller="liu.poe.fiveway.ui.BuffEditorController"
+           styleClass="dialog-backdrop" visible="false" managed="false" onMouseClicked="#onBackdropClick">
+    <VBox styleClass="dialog, buff-editor" maxWidth="-Infinity" maxHeight="-Infinity" prefWidth="400"
+          onMouseClicked="#consume">
+        <Label fx:id="titleLabel" styleClass="dialog-title"/>
+
+        <HBox styleClass="form-row">
+            <Label styleClass="form-label" text="%label.name"/>
+            <TextField fx:id="nameField" styleClass="text" promptText="%placeholder.buffName" HBox.hgrow="ALWAYS"/>
+        </HBox>
+        <HBox styleClass="form-row">
+            <Label styleClass="form-label" text="%label.triggerKey"/>
+            <KeyRecorder fx:id="keyRecorder"/>
+        </HBox>
+        <HBox styleClass="form-row">
+            <Label styleClass="form-label" text="%label.interval"/>
+            <TextField fx:id="intervalField" styleClass="num" prefWidth="80" alignment="CENTER_RIGHT"/>
+        </HBox>
+
+        <Label styleClass="hint" text="%hint.buffEditor" wrapText="true"/>
+
+        <HBox styleClass="dialog-actions">
+            <Button text="%common.cancel" styleClass="btn, ghost" focusTraversable="false" onAction="#onCancel"/>
+            <Button fx:id="saveBtn" styleClass="btn, primary" focusTraversable="false" onAction="#onSave"/>
+        </HBox>
+    </VBox>
+</StackPane>

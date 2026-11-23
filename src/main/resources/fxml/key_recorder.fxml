@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.*?>
+
+<fx:root type="javafx.scene.layout.StackPane" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" styleClass="key-recorder-wrap">
+    <Button fx:id="keyBtn" styleClass="key-btn" focusTraversable="false" maxWidth="Infinity"
+            onMousePressed="#onKeyBtnPressed"/>
+    <Button fx:id="clearBtn" styleClass="key-btn-clear" focusTraversable="false" visible="false" managed="false"
+            StackPane.alignment="CENTER_RIGHT" onAction="#onClear">
+        <StackPane.margin>
+            <Insets right="6"/>
+        </StackPane.margin>
+        <graphic>
+            <SVGPath styleClass="icon-stroke" content="M1.5 1.5 L8.5 8.5 M8.5 1.5 L1.5 8.5"/>
+        </graphic>
+    </Button>
+</fx:root>
