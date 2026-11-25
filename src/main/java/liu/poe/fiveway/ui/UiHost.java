@@ -12,6 +12,9 @@ public interface UiHost {
     /** 通用對話框；cancelText 為 null 則不顯示取消鈕 */
     void showDialog(String title, String message, String confirmText, String cancelText, Runnable onConfirm);
 
+    /** 只有一個按鈕的強制提示：不能以點擊背景關閉，按下按鈕後一定會執行 onConfirm */
+    void showNotice(String title, String message, String confirmText, Runnable onConfirm);
+
     /** 確定 / 取消 的確認對話框 */
     void confirm(String title, String message, Runnable onOk);
 

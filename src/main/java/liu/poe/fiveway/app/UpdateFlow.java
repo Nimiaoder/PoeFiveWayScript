@@ -95,7 +95,7 @@ public final class UpdateFlow {
             try {
                 Path target = AppPaths.tempDir().resolve(asset.name());
                 ctx.updates().download(asset, target, p -> Platform.runLater(() -> ui.setProgress(p)));
-                Platform.runLater(() -> apply(target));
+                Platform.runLater(() -> notifyRestart(target));
             } catch (Exception e) {
                 log.error("更新檔下載失敗", e);
                 Platform.runLater(() -> {
@@ -106,6 +106,12 @@ public final class UpdateFlow {
                 });
             }
         });
+    }
+
+    /** 下載完成：先提示將重新啟動套用更新 (只有確認鈕、不可取消)，確認後才真正套用 */
+    private void notifyRestart(Path downloaded) {
+        ctx.ui().showNotice(I18n.t("update.ready.title"), I18n.t("update.ready.message"),
+                I18n.t("common.ok"), () -> apply(downloaded));
     }
 
     private void apply(Path downloaded) {

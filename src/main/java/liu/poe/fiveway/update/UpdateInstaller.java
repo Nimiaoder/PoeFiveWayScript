@@ -18,7 +18,7 @@ import java.util.zip.ZipInputStream;
 /**
  * 套用已下載的更新。呼叫成功後，呼叫端必須立刻結束程式。
  * <ul>
- *   <li>免安裝版 (portable)：解壓 zip → 產生批次檔 → 等本程式結束後覆蓋程式檔 (保留 data 資料夾) → 重新啟動</li>
+ *   <li>免安裝版 (portable)：解壓 zip → 產生批次檔 → 以隱藏視窗執行，等本程式結束後覆蓋程式檔 (保留 data 資料夾) → 重新啟動</li>
  *   <li>安裝版 (installer)：直接執行下載的安裝程式 (jpackage 的 upgrade UUID 固定，會覆蓋升級)</li>
  * </ul>
  */
@@ -62,8 +62,22 @@ public final class UpdateInstaller {
         Path bat = work.resolve("apply-update.bat");
         Files.writeString(bat, buildScript(source, appDir, exe, work), StandardCharsets.UTF_8);
 
-        // cmd /c start "" /min <bat>：以獨立的最小化視窗執行，不隨本程式結束而中止
-        new ProcessBuilder("cmd.exe", "/c", "start", "", "/min", bat.toString()).start();
+        // 以 wscript 執行 .vbs，並用視窗樣式 0 (隱藏) 啟動批次檔：不會出現 cmd 小黑窗，也不隨本程式結束而中止
+        Path vbs = work.resolve("apply-update.vbs");
+        writeVbs(vbs, bat);
+        new ProcessBuilder("wscript.exe", "//B", "//Nologo", vbs.toString()).start();
+    }
+
+    /** 產生隱藏視窗執行批次檔的 VBScript (UTF-16LE + BOM，路徑含中文也能正確讀取) */
+    private static void writeVbs(Path vbs, Path bat) throws IOException {
+        String cmd = "cmd.exe /c \"\"" + bat + "\"\"";
+        String script = "CreateObject(\"WScript.Shell\").Run \"" + cmd.replace("\"", "\"\"") + "\", 0, False\r\n";
+        byte[] body = script.getBytes(StandardCharsets.UTF_16LE);
+        byte[] out = new byte[body.length + 2];
+        out[0] = (byte) 0xFF;
+        out[1] = (byte) 0xFE;
+        System.arraycopy(body, 0, out, 2, body.length);
+        Files.write(vbs, out);
     }
 
     /** zip 內若只有單一頂層資料夾 (例如 PoeFiveWayScript/)，以該資料夾為來源 */

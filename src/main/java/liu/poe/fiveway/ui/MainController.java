@@ -77,6 +77,11 @@ public class MainController implements UiHost {
     }
 
     @Override
+    public void showNotice(String title, String message, String confirmText, Runnable onConfirm) {
+        dialogController.showNotice(title, message, confirmText, onConfirm);
+    }
+
+    @Override
     public void confirm(String title, String message, Runnable onOk) {
         dialogController.show(title, message, null, liu.poe.fiveway.i18n.I18n.t("common.cancel"), onOk);
     }

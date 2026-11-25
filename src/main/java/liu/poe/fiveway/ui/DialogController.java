@@ -23,10 +23,13 @@ public class DialogController {
 
     private Runnable onConfirm;
     private boolean progressMode;
+    /** 強制提示：點背景不會關閉 */
+    private boolean locked;
 
     public void show(String title, String message, String confirmText, String cancelText, Runnable onConfirm) {
         this.onConfirm = onConfirm;
         this.progressMode = false;
+        this.locked = false;
         titleLabel.setText(title);
         messageLabel.setText(message);
         UiUtil.show(progressBar, false);
@@ -37,8 +40,15 @@ public class DialogController {
         UiUtil.show(backdrop, true);
     }
 
+    /** 只有一個按鈕、不能點背景關閉的提示 (只能按按鈕，按下後執行 onConfirm) */
+    public void showNotice(String title, String message, String confirmText, Runnable onConfirm) {
+        show(title, message, confirmText, null, onConfirm);
+        this.locked = true;
+    }
+
     public void showProgress(String title, String message) {
         this.onConfirm = null;
+        this.locked = false;
         this.progressMode = true;
         titleLabel.setText(title);
         messageLabel.setText(message);
@@ -55,11 +65,12 @@ public class DialogController {
     public void close() {
         UiUtil.show(backdrop, false);
         progressMode = false;
+        locked = false;
     }
 
     @FXML
     private void onBackdropClick() {
-        if (!progressMode) close();
+        if (!progressMode && !locked) close();
     }
 
     @FXML
