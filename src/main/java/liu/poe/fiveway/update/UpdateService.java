@@ -53,6 +53,8 @@ public final class UpdateService {
     /** 檢查更新 (阻塞，請在背景執行緒呼叫) */
     public CheckResult check() {
         String current = AppConfig.appVersion();
+        log.info("[update] 檢查更新：repo={}, 目前版本={}, distribution={}",
+                AppConfig.updateRepo(), current, AppConfig.distribution());
         try {
             String url = AppConfig.updateApiBase() + "/repos/" + AppConfig.updateRepo() + "/releases/latest";
             HttpRequest req = HttpRequest.newBuilder(URI.create(url))
@@ -62,27 +64,37 @@ public final class UpdateService {
                     .GET()
                     .build();
             HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
+            log.debug("[update] Release API 回應 HTTP {} ({})", res.statusCode(), url);
 
             JsonObject data;
             try {
                 data = JsonParser.parseString(res.body()).getAsJsonObject();
             } catch (Exception e) {
+                log.warn("[update] 無法解析 Release 回應 (HTTP {})：{}", res.statusCode(), e.toString());
                 return CheckResult.error("update.error.noVersion", "HTTP " + res.statusCode());
             }
             String tag = str(data, "tag_name");
             String latest = tag.replaceFirst("^v", "");
             if (latest.isEmpty()) {
+                log.warn("[update] Release 回應沒有 tag_name (HTTP {})", res.statusCode());
                 return CheckResult.error("update.error.noVersion", "HTTP " + res.statusCode());
             }
 
             Version vLatest = Version.parse(latest);
             Version vCurrent = Version.parse(current);
+            if (vLatest == null || vCurrent == null) {
+                log.warn("[update] 版本號無法比較：最新={}, 目前={}", latest, current);
+            }
             boolean hasUpdate = vLatest != null && vCurrent != null && vLatest.compareTo(vCurrent) > 0;
 
+            Asset asset = pickAsset(data);
+            log.info("[update] 檢查結果：目前={}, 最新={}, 有新版={}, 附件={}", current, latest, hasUpdate,
+                    asset == null ? "無" : asset.name() + " (" + asset.size() + " bytes)");
             return new CheckResult(true, hasUpdate, latest, current, str(data, "html_url"),
-                    pickAsset(data), null, null);
+                    asset, null, null);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.warn("[update] 檢查更新被中斷");
             return CheckResult.error(null, e.getMessage());
         } catch (Exception e) {
             log.warn("檢查更新失敗：{}", e.toString());
@@ -95,7 +107,10 @@ public final class UpdateService {
         String regex;
         if (AppConfig.isPortable()) regex = AppConfig.portableAssetRegex();
         else if (AppConfig.isInstaller()) regex = AppConfig.installerAssetRegex();
-        else return null;
+        else {
+            log.debug("[update] 開發模式，不挑選更新附件");
+            return null;
+        }
 
         Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         JsonElement assetsEl = release.get("assets");
@@ -109,6 +124,7 @@ public final class UpdateService {
                 return new Asset(name, str(a, "browser_download_url"), size);
             }
         }
+        log.info("[update] Release 中找不到符合規則的附件 (distribution={}, regex={})", AppConfig.distribution(), regex);
         return null;
     }
 
@@ -129,22 +145,34 @@ public final class UpdateService {
         HttpResponse<InputStream> res = http.send(req, HttpResponse.BodyHandlers.ofInputStream());
         if (res.statusCode() != 200) {
             res.body().close();
+            log.warn("[update] 下載失敗：HTTP {} ({})", res.statusCode(), asset.url());
             throw new IOException("HTTP " + res.statusCode());
         }
         long total = res.headers().firstValueAsLong("Content-Length").orElse(asset.size());
+        log.info("[update] 開始下載：{} ({} bytes) → {}", asset.name(), total, target);
+        long startNs = System.nanoTime();
 
+        long done = 0;
         try (InputStream in = res.body(); OutputStream out = Files.newOutputStream(part)) {
             byte[] buf = new byte[64 * 1024];
-            long done = 0;
+            int nextMark = 25;
             int n;
             while ((n = in.read(buf)) != -1) {
                 if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
                 out.write(buf, 0, n);
                 done += n;
                 progress.accept(total > 0 ? Math.min(1.0, (double) done / total) : -1);
+                if (total > 0) {
+                    int pct = (int) Math.min(100, done * 100 / total);
+                    if (pct >= nextMark) {
+                        log.debug("[update] 下載進度 {}% ({}/{} bytes)", pct, done, total);
+                        nextMark = pct / 25 * 25 + 25;
+                    }
+                }
             }
         }
         Files.move(part, target, StandardCopyOption.REPLACE_EXISTING);
         progress.accept(1.0);
+        log.info("[update] 下載完成：{} ({} bytes, 耗時 {} ms)", target, done, (System.nanoTime() - startNs) / 1_000_000L);
     }
 }

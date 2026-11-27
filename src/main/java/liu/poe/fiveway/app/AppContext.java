@@ -14,6 +14,7 @@ import liu.poe.fiveway.input.MouseSender;
 import liu.poe.fiveway.model.Buff;
 import liu.poe.fiveway.model.KeyCombo;
 import liu.poe.fiveway.model.Settings;
+import liu.poe.fiveway.store.SettingsDiff;
 import liu.poe.fiveway.store.SettingsStore;
 import liu.poe.fiveway.ui.UiHost;
 import liu.poe.fiveway.ui.WindowManager;
@@ -145,10 +146,20 @@ public final class AppContext {
 
     /** 修改設定 → 儲存 → 重新綁定快捷鍵 → 通知 UI 刷新 */
     public void update(Consumer<Settings> mutator) {
+        Settings before = settings().copy();
         mutator.accept(settings());
+        logChanges(before, settings());
         store.save(false);
         rebindHotkeys();
         fireChanged();
+    }
+
+    /** 記錄使用者這次改了哪些設定 (舊值 → 新值)；透明度滑桿拖曳頻繁，只記 DEBUG */
+    private void logChanges(Settings before, Settings after) {
+        for (SettingsDiff.Change c : SettingsDiff.diff(before, after)) {
+            if (c.noisy()) log.debug("[setting] {}", c.text());
+            else log.info("[setting] {}", c.text());
+        }
     }
 
     /** 不通知 UI 的靜默修改 (視窗位置/大小這類高頻變動；不備份) */
@@ -159,6 +170,7 @@ public final class AppContext {
 
     /** 重設所有設定 (保留視窗大小/位置與語言)，並重新套用視窗透明度/置頂 */
     public void resetSettings() {
+        log.info("[setting] 使用者重設所有設定 (保留視窗大小/位置與語言)");
         Settings s = store.reset();
         if (window != null) {
             window.setOpacity(s.opacity);
@@ -171,10 +183,16 @@ public final class AppContext {
     /** 註冊 toggle / 隱藏畫面 快捷鍵 (未設定或未啟用時解除綁定) */
     public void rebindHotkeys() {
         Settings s = settings();
-        hotkeys.bindToggle(s.toggleHotkey, s.hotkeyMode, () -> Platform.runLater(this::toggleScript));
-        hotkeys.bindHide(s.hideEnabled ? s.hideHotkey : null, () -> Platform.runLater(() -> {
-            if (window != null) window.toggleVisibility();
-        }));
+        hotkeys.bindToggle(s.toggleHotkey, s.hotkeyMode, () -> {
+            log.info("[hotkey] 啟動/關閉快捷鍵觸發");
+            Platform.runLater(this::toggleScript);
+        });
+        hotkeys.bindHide(s.hideEnabled ? s.hideHotkey : null, () -> {
+            log.info("[hotkey] 隱藏/顯示畫面快捷鍵觸發");
+            Platform.runLater(() -> {
+                if (window != null) window.toggleVisibility();
+            });
+        });
     }
 
     // ── 按鍵重複檢查 ───────────────────────────────────────────────────
@@ -185,6 +203,12 @@ public final class AppContext {
      * @return 已綁定的功能名稱；未重複回傳 null
      */
     public String duplicateOf(KeyCombo k, String exclude) {
+        String dup = findDuplicate(k, exclude);
+        if (dup != null) log.info("[setting] 按鍵 {} 與「{}」重複，拒絕設定 (欄位={})", k, dup, exclude);
+        return dup;
+    }
+
+    private String findDuplicate(KeyCombo k, String exclude) {
         if (k == null) return null;
         Settings s = settings();
         if (!"toggle".equals(exclude) && k.sameAs(s.toggleHotkey)) return I18n.t("dup.toggle");
@@ -230,14 +254,19 @@ public final class AppContext {
     }
 
     public void toggleScript() {
+        log.info("[script] 切換腳本：目前{} → {}", running.get() ? "執行中" : "已停止", running.get() ? "停止" : "啟動");
         if (running.get()) stopScript();
         else startScript();
     }
 
     public void startScript() {
-        if (running.get() || starting) return;
+        if (running.get() || starting) {
+            log.debug("[script] 忽略啟動要求 (running={}, starting={})", running.get(), starting);
+            return;
+        }
         String err = validate(settings());
         if (err != null) {
+            log.warn("[script] 啟動前檢查未通過：{}", err);
             ui.showMessage(I18n.t("dialog.title.cannotStart"), err);
             return;
         }
@@ -251,11 +280,13 @@ public final class AppContext {
                 if (!r.ok()) {
                     String msg = r.errorKey() != null ? I18n.t(r.errorKey())
                             : (r.errorDetail() != null ? r.errorDetail() : I18n.t("dialog.unknownError"));
+                    log.warn("[script] 腳本啟動失敗：{}", msg);
                     ui.showMessage(I18n.t("dialog.title.startFailed"), msg);
                     return;
                 }
                 if (pendingStop) {
                     // 啟動過程中使用者已按下停止
+                    log.info("[script] 啟動過程中收到停止要求，立即停止");
                     pendingStop = false;
                     engine.stop();
                     return;
@@ -266,6 +297,7 @@ public final class AppContext {
     }
 
     public void stopScript() {
+        log.info("[script] 要求停止腳本 (running={}, starting={})", running.get(), starting);
         if (starting) pendingStop = true;
         engine.stop();
         running.set(false);

@@ -12,9 +12,12 @@ import liu.poe.fiveway.model.KeyCombo;
 import liu.poe.fiveway.model.Settings;
 import liu.poe.fiveway.ui.component.KeyRecorder;
 import liu.poe.fiveway.ui.component.ToggleSwitch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** 區塊一：腳本控制 (啟動/關閉、快捷鍵、快捷鍵模式) + 模式 (自動攻擊/刷新/Buff) */
 public class ScriptControlController {
+    private static final Logger log = LoggerFactory.getLogger(ScriptControlController.class);
 
     private static final PseudoClass ON = PseudoClass.getPseudoClass("on");
 
@@ -76,6 +79,7 @@ public class ScriptControlController {
     @FXML
     private void onRunSwitch() {
         boolean want = runSwitch.isSelected();
+        log.info("[ui] 使用者點擊啟動開關 → 要求{}", want ? "啟動" : "停止");
         // 開關狀態由「是否真的在執行」決定：先還原，成功啟動後 refresh 會再打開
         runSwitch.setSelected(ctx.isRunning());
         if (want) ctx.startScript();

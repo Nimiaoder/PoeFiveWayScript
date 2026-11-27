@@ -96,6 +96,7 @@ public class SettingsStore {
         try {
             if (!skip) backupCurrent();
             Files.writeString(configFile, GSON.toJson(settings), StandardCharsets.UTF_8);
+            log.debug("[store] 設定已寫入：{} (備份={})", configFile, !skip);
         } catch (Exception e) {
             log.error("[store] 寫入設定失敗", e);
         }
@@ -109,6 +110,7 @@ public class SettingsStore {
         settings = new Settings();
         if (bounds != null) settings.windowBounds = bounds;
         settings.language = language;
+        log.info("[store] 設定已重設為預設值 (保留視窗位置/大小與語言)");
         save(false);
         return settings;
     }
@@ -128,6 +130,7 @@ public class SettingsStore {
             String ts = Instant.now().toString().replace(":", "-").replace(".", "-");
             Path dest = backupDir.resolve("settings-" + ts + ".json");
             Files.copy(configFile, dest, StandardCopyOption.REPLACE_EXISTING);
+            log.debug("[store] 已備份設定檔：{}", dest.getFileName());
             // 清理舊備份，只保留最新 MAX_BACKUPS 份
             try (Stream<Path> files = Files.list(backupDir)) {
                 List<Path> sorted = files
@@ -140,6 +143,7 @@ public class SettingsStore {
                 for (int i = AppConfig.MAX_BACKUPS; i < sorted.size(); i++) {
                     try {
                         Files.deleteIfExists(sorted.get(i));
+                        log.debug("[store] 已清除舊備份：{}", sorted.get(i).getFileName());
                     } catch (IOException ignored) {
                         // 略過
                     }

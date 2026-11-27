@@ -179,6 +179,7 @@ public final class HotkeyService {
         CaptureSession cs = captureSession;
         if (cs != null) {
             if ("Esc".equals(name)) {
+                log.debug("[hotkey] 錄製按鍵已取消 (Esc)");
                 captureSession = null;
                 cs.callback.accept(CaptureResult.cancelledResult());
                 return;
@@ -224,9 +225,11 @@ public final class HotkeyService {
             captureSession = null;
             if (!hasNonMod) {
                 // 不得單獨為 Ctrl/Shift/Alt
+                log.info("[hotkey] 錄製失敗：不能只有修飾鍵 {}", combo);
                 cs.callback.accept(CaptureResult.error("recorder.error.modifierOnly"));
                 return;
             }
+            log.info("[hotkey] 錄製完成：{}", String.join("+", combo));
             cs.callback.accept(CaptureResult.ok(combo));
             return;
         }
@@ -268,6 +271,7 @@ public final class HotkeyService {
     /** 開始錄製 (同一時間只有一個 session，舊的會立即收到 cancelled) */
     public void startCapture(Consumer<CaptureResult> callback) {
         ensureStarted();
+        log.debug("[hotkey] 開始錄製按鍵{}", captureSession != null ? " (取消前一個錄製)" : "");
         CaptureSession old = captureSession;
         captureSession = new CaptureSession(callback);
         if (old != null) old.callback.accept(CaptureResult.cancelledResult());
@@ -276,29 +280,42 @@ public final class HotkeyService {
     public void cancelCapture() {
         CaptureSession cs = captureSession;
         if (cs != null) {
+            log.debug("[hotkey] 取消錄製按鍵");
             captureSession = null;
             cs.callback.accept(CaptureResult.cancelledResult());
         }
     }
 
-    /** 綁定 toggle 快捷鍵；combo 為 null 則解除 */
+    /** 綁定 toggle 快捷鍵；combo 為 null 則解除 (每次設定變更都會呼叫，只在實際變動時記 log) */
     public void bindToggle(KeyCombo combo, String mode, Runnable cb) {
+        Binding old = toggleBinding;
         if (combo == null || !combo.hasKeys()) {
+            if (old != null) log.info("[hotkey] 已解除啟動/關閉快捷鍵");
             toggleBinding = null;
             return;
         }
         ensureStarted();
-        toggleBinding = new Binding(new LinkedHashSet<>(combo.keys), mode, cb);
+        Binding nb = new Binding(new LinkedHashSet<>(combo.keys), mode, cb);
+        toggleBinding = nb;
+        if (old == null || !old.keys.equals(nb.keys) || !java.util.Objects.equals(old.mode, nb.mode)) {
+            log.info("[hotkey] 已綁定啟動/關閉快捷鍵：{} (模式={})", combo, mode);
+        }
     }
 
     /** 綁定隱藏畫面快捷鍵；combo 為 null 則解除 */
     public void bindHide(KeyCombo combo, Runnable cb) {
+        Binding old = hideBinding;
         if (combo == null || !combo.hasKeys()) {
+            if (old != null) log.info("[hotkey] 已解除隱藏畫面快捷鍵");
             hideBinding = null;
             return;
         }
         ensureStarted();
-        hideBinding = new Binding(new LinkedHashSet<>(combo.keys), "listen", cb);
+        Binding nb = new Binding(new LinkedHashSet<>(combo.keys), "listen", cb);
+        hideBinding = nb;
+        if (old == null || !old.keys.equals(nb.keys)) {
+            log.info("[hotkey] 已綁定隱藏畫面快捷鍵：{}", combo);
+        }
     }
 
     /** 供 ScriptEngine 註冊 (時空裂隙鍵監聽)；fn 為 null 則解除 */
@@ -316,5 +333,6 @@ public final class HotkeyService {
             // 略過
         }
         started = false;
+        log.info("[hotkey] 全域鍵盤鉤子已卸載");
     }
 }

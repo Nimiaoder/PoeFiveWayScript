@@ -12,4 +12,10 @@ public class ScreenPoint {
         this.x = x;
         this.y = y;
     }
+
+    /** log 用：(x, y) */
+    @Override
+    public String toString() {
+        return "(" + x + ", " + y + ")";
+    }
 }

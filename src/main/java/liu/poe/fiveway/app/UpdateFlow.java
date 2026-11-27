@@ -33,6 +33,7 @@ public final class UpdateFlow {
      * @param onDone 檢查結束後回呼 (JavaFX 執行緒)，可為 null
      */
     public void check(boolean manual, Runnable onDone) {
+        log.info("[update] {}檢查更新", manual ? "使用者手動" : "啟動時自動");
         ctx.background().execute(() -> {
             UpdateService.CheckResult r = ctx.updates().check();
             Platform.runLater(() -> {
@@ -48,10 +49,12 @@ public final class UpdateFlow {
     private void handle(UpdateService.CheckResult r, boolean manual) {
         UiHost ui = ctx.ui();
         if (!r.ok()) {
+            log.info("[update] 檢查更新失敗 ({})：{}", manual ? "顯示錯誤訊息" : "自動檢查，不打擾使用者", errorText(r));
             if (manual) ui.showMessage(I18n.t("update.failed.title"), errorText(r));
             return;
         }
         if (!r.hasUpdate()) {
+            log.info("[update] 目前已是最新版本 ({})", r.current());
             if (manual) {
                 ui.showMessage(I18n.t("update.latest.title"), I18n.t("update.latest.message", r.current()));
             }
@@ -61,15 +64,20 @@ public final class UpdateFlow {
         String message = I18n.t("update.available.message", r.current(), r.latest());
         boolean canAutoUpdate = r.asset() != null && (AppConfig.isPortable() || AppConfig.isInstaller())
                 && !r.asset().url().isEmpty();
+        log.info("[update] 發現新版本：{} → {} (可自動更新={})", r.current(), r.latest(), canAutoUpdate);
         if (canAutoUpdate) {
             ui.showDialog(I18n.t("update.available.title"), message,
                     I18n.t("update.btn.now"), I18n.t("common.close"),
-                    () -> download(r.asset()));
+                    () -> {
+                        log.info("[update] 使用者選擇立即更新：{}", r.asset().name());
+                        download(r.asset());
+                    });
         } else {
             String url = r.pageUrl();
             ui.showDialog(I18n.t("update.available.title"), message,
                     I18n.t("update.btn.download"), I18n.t("common.close"),
                     () -> {
+                        log.info("[update] 使用者選擇開啟下載頁面：{}", url);
                         if (url != null && !url.isEmpty()) ctx.host().openExternal(url);
                     });
         }
@@ -84,10 +92,14 @@ public final class UpdateFlow {
     }
 
     private void download(UpdateService.Asset asset) {
-        if (busy) return;
+        if (busy) {
+            log.debug("[update] 已有更新作業進行中，忽略重複要求");
+            return;
+        }
         busy = true;
         UiHost ui = ctx.ui();
         // 更新前先停止腳本，避免按鍵殘留
+        log.info("[update] 更新前先停止腳本，開始下載 {}", asset.name());
         ctx.stopScript();
         ui.showProgress(I18n.t("update.downloading.title"), I18n.t("update.downloading.message", asset.name()));
 
@@ -110,6 +122,7 @@ public final class UpdateFlow {
 
     /** 下載完成：先提示將重新啟動套用更新 (只有確認鈕、不可取消)，確認後才真正套用 */
     private void notifyRestart(Path downloaded) {
+        log.info("[update] 下載完成，等待使用者確認後重新啟動套用更新：{}", downloaded);
         ctx.ui().showNotice(I18n.t("update.ready.title"), I18n.t("update.ready.message"),
                 I18n.t("common.ok"), () -> apply(downloaded));
     }
@@ -117,8 +130,10 @@ public final class UpdateFlow {
     private void apply(Path downloaded) {
         UiHost ui = ctx.ui();
         try {
+            log.info("[update] 使用者已確認，開始套用更新：{}", downloaded);
             UpdateInstaller.apply(downloaded);
             // 更新腳本 / 安裝程式已啟動，立刻結束本程式讓它接手
+            log.info("[update] 更新程序已啟動，結束本程式交由更新程式接手");
             ctx.host().exitApp();
         } catch (Exception e) {
             log.error("套用更新失敗", e);

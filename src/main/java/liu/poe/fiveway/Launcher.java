@@ -21,6 +21,9 @@ public final class Launcher {
         System.setProperty("app.data.dir", AppPaths.dataRoot().toString());
 
         Logger log = LoggerFactory.getLogger(Launcher.class);
+        log.info("執行環境：Java {} ({}), {} {} ({})",
+                System.getProperty("java.version"), System.getProperty("java.vendor"),
+                System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"));
         Thread.setDefaultUncaughtExceptionHandler(
                 (t, e) -> log.error("未捕捉的例外 (thread={})", t.getName(), e));
 

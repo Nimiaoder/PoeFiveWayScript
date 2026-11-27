@@ -57,9 +57,13 @@ public final class ScriptEngine {
 
     /** 啟動腳本 (可能阻塞約數百毫秒，請勿在 UI 執行緒呼叫) */
     public synchronized StartResult start(Settings cfg) {
-        if (isRunning()) return StartResult.failure("engine.error.alreadyRunning", null);
+        if (isRunning()) {
+            log.warn("[script] 啟動被忽略：腳本已在執行中");
+            return StartResult.failure("engine.error.alreadyRunning", null);
+        }
         Session s = new Session(cfg);
         session = s;
+        log.info("[script] 啟動腳本：{}", summarize(cfg));
         try {
             s.begin();
             log.info("腳本已啟動");
@@ -79,6 +83,45 @@ public final class ScriptEngine {
             s.shutdown();
             if (wasRunning) log.info("腳本已停止");
         }
+    }
+
+    /** 啟動時把這次執行用到的設定寫進 log，方便事後對照 */
+    private static String summarize(Settings c) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("模式[攻擊=").append(c.attackerMode)
+                .append(", 刷新=").append(c.refreshMode)
+                .append(", Buff=").append(c.buffMode).append(']')
+                .append(", 啟動鍵=").append(c.toggleHotkey).append('(').append(c.hotkeyMode).append(')');
+        if (c.attackerMode) {
+            sb.append(", 攻擊鍵=").append(c.attackKey)
+                    .append(", 攻擊恢復延遲=").append(c.attackResumeDelay).append("ms");
+        }
+        if (c.refreshMode) {
+            sb.append(", 方向=").append(c.refreshDirection)
+                    .append(", 進圈=").append(c.enterKey).append('/').append(c.enterWaitMs).append("ms")
+                    .append(", 出圈=").append(c.exitKey).append('/').append(c.exitWaitMs).append("ms")
+                    .append(", 時空裂隙=").append(c.riftEnabled ? String.valueOf(c.riftKey) : "關閉")
+                    .append(", 鼠標控制=").append(c.mouseControl ? String.valueOf(c.mousePos) : "關閉");
+            if (c.dualRefreshMode && c.attackerMode) {
+                sb.append(", 雙人[打手=").append(c.dualAttackerPos)
+                        .append(", 光環師=").append(c.dualAuraPos)
+                        .append(", 右鍵聚焦=").append(c.dualRightClickFocus)
+                        .append(", 切窗延遲=").append(c.dualFocusDelayMs).append("ms]");
+            }
+        }
+        if (c.buffMode) {
+            sb.append(", Buff=[");
+            boolean first = true;
+            for (Buff b : c.buffs) {
+                if (!b.usable()) continue;
+                if (!first) sb.append("; ");
+                first = false;
+                sb.append(b.name).append(' ').append(b.key).append(" 每").append(b.intervalSec).append("秒")
+                        .append(b.castOnStart ? " 啟動立即施放" : "");
+            }
+            sb.append(']');
+        }
+        return sb.toString();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -105,7 +148,7 @@ public final class ScriptEngine {
         }
     }
 
-    private record Step(List<String> keys, int waitMs) {
+    private record Step(String name, List<String> keys, int waitMs) {
     }
 
     private final class Session {
@@ -147,6 +190,7 @@ public final class ScriptEngine {
 
             // 自動刷新
             if (config.refreshMode) {
+                log.debug("[refresh] 啟動刷新迴圈 (模式={})", isDualMode() ? "雙人" : "單人");
                 refreshThread = new Thread(isDualMode() ? this::dualRefreshLoop : this::refreshLoop, "script-refresh");
                 refreshThread.setDaemon(true);
                 refreshThread.start();
@@ -183,6 +227,7 @@ public final class ScriptEngine {
         void releaseAll() {
             List<List<String>> toRelease = new ArrayList<>(heldKeys);
             heldKeys.clear();
+            if (!toRelease.isEmpty()) log.debug("[key] 釋放仍按住的按鍵：{}", toRelease);
             for (List<String> k : toRelease) {
                 try {
                     keys.releaseKey(k);
@@ -246,7 +291,10 @@ public final class ScriptEngine {
                     if (w.resettable) targets.add(w);
                 }
             }
-            if (targets.isEmpty()) return;
+            if (targets.isEmpty()) {
+                log.debug("[rift] 時空裂隙鍵按下，但目前沒有可重算的等待");
+                return;
+            }
             for (Wait w : targets) {
                 synchronized (w) {
                     w.deadline = System.nanoTime() + w.ms * 1_000_000L;
@@ -267,6 +315,7 @@ public final class ScriptEngine {
                 resetPendingWaits();
             });
             riftListenerBound = true;
+            log.info("[rift] 已啟用時空裂隙按鍵監聽：{}", config.riftKey);
         }
 
         void unbindRiftListener() {
@@ -301,6 +350,7 @@ public final class ScriptEngine {
                     }
                 });
             } catch (RejectedExecutionException e) {
+                log.debug("[script] 動作佇列已關閉，略過新動作");
                 return CompletableFuture.completedFuture(null);
             }
         }
@@ -330,6 +380,7 @@ public final class ScriptEngine {
         /** 單純短按一個鍵 (按壓固定 HOLD_MS)；即使中途被停止也一定會放開 */
         void tapKey(List<String> k) {
             if (!running || k == null || k.isEmpty()) return;
+            log.debug("[key] 送出按鍵 {} (按壓 {}ms)", k, AppConfig.HOLD_MS);
             markPress(k);
             try {
                 sleep(AppConfig.HOLD_MS, false);
@@ -346,11 +397,13 @@ public final class ScriptEngine {
         void holdAttack() {
             if (!attackUsable()) return;
             if (heldKeys.contains(config.attackKey.keys)) return;
+            log.debug("[attack] 按住攻擊鍵 {}", config.attackKey);
             markPress(config.attackKey.keys);
         }
 
         void pauseAttack() {
             if (!attackUsable()) return;
+            log.debug("[attack] 暫停攻擊鍵 {}", config.attackKey);
             markRelease(config.attackKey.keys);
         }
 
@@ -375,22 +428,26 @@ public final class ScriptEngine {
         void refreshLoop() {
             try {
                 List<Step> seq = Settings.DIR_ENTER_FIRST.equals(config.refreshDirection)
-                        ? List.of(step(config.enterKey, config.enterWaitMs), step(config.exitKey, config.exitWaitMs))
-                        : List.of(step(config.exitKey, config.exitWaitMs), step(config.enterKey, config.enterWaitMs));
+                        ? List.of(step("進圈", config.enterKey, config.enterWaitMs), step("出圈", config.exitKey, config.exitWaitMs))
+                        : List.of(step("出圈", config.exitKey, config.exitWaitMs), step("進圈", config.enterKey, config.enterWaitMs));
 
+                long rounds = 0;
                 while (running) {
                     for (Step st : seq) {
                         if (!running) return;
                         // 進圈/出圈前：如啟用自動控制鼠標位置，先移動鼠標
                         if (config.mouseControl && config.mousePos != null) {
+                            log.debug("[mouse] 移動鼠標至 {}", config.mousePos);
                             mouse.moveAbsolute(config.mousePos);
                         }
+                        log.debug("[refresh] {} 按鍵={}，之後等待 {}ms", st.name(), st.keys(), st.waitMs());
                         // Refresh 具最高優先，透過 enqueue 保證與 Buff 不衝突
                         await(enqueue(() -> executeWithAttackPause(st.keys())));
                         if (!running) return;
                         // 此等待可被時空裂隙鍵重算
                         sleep(st.waitMs(), true);
                     }
+                    if (++rounds % 100 == 0) log.info("[refresh] 單人刷新已完成 {} 輪", rounds);
                 }
             } catch (StopSignal ignored) {
                 // 腳本已停止
@@ -409,6 +466,9 @@ public final class ScriptEngine {
             if (!running) return;
             // 記錄目前焦點視窗，讓 Buff 能判斷「現在是否在打手視窗」
             focusedWindow = which;
+            log.debug("[dual] 切換至{}視窗 {} (右鍵聚焦={}, 等待 {}ms)",
+                    WINDOW_ATTACKER.equals(which) ? "打手" : "光環師", point,
+                    config.dualRightClickFocus, Math.max(0, config.dualFocusDelayMs));
             mouse.moveAbsolute(point);
             if (config.dualRightClickFocus) {
                 mouse.rightClick();
@@ -446,15 +506,17 @@ public final class ScriptEngine {
 
         void dualRefreshLoop() {
             try {
-                Step enterStep = step(config.enterKey, config.enterWaitMs);
-                Step exitStep = step(config.exitKey, config.exitWaitMs);
+                Step enterStep = step("進圈", config.enterKey, config.enterWaitMs);
+                Step exitStep = step("出圈", config.exitKey, config.exitWaitMs);
                 List<Step> seq = Settings.DIR_EXIT_FIRST.equals(config.refreshDirection)
                         ? List.of(exitStep, enterStep)
                         : List.of(enterStep, exitStep);
 
+                long rounds = 0;
                 while (running) {
                     for (Step st : seq) {
                         if (!running) return;
+                        log.debug("[refresh] 雙人 {} 按鍵={}，之後等待 {}ms", st.name(), st.keys(), st.waitMs());
                         // 切窗流程整段排隊，避免 Buff 插在視窗切換中間造成按鍵打錯視窗
                         await(enqueue(() -> dualPhase(st.keys())));
                         if (!running) return;
@@ -462,6 +524,7 @@ public final class ScriptEngine {
                         // 等待期間若有 Buff 到期，可立即安全施放 (可被時空裂隙鍵重算)
                         sleep(st.waitMs(), true);
                     }
+                    if (++rounds % 100 == 0) log.info("[refresh] 雙人刷新已完成 {} 輪", rounds);
                 }
             } catch (StopSignal ignored) {
                 // 腳本已停止
@@ -470,9 +533,9 @@ public final class ScriptEngine {
             }
         }
 
-        private Step step(KeyCombo key, int waitMs) {
+        private Step step(String name, KeyCombo key, int waitMs) {
             List<String> k = (key == null || key.keys == null) ? Collections.emptyList() : key.keys;
-            return new Step(k, waitMs);
+            return new Step(name, k, waitMs);
         }
 
         /** 是否使用雙人刷新模式 (需同時勾選打手 + 刷新，並完成兩個座標綁定) */
@@ -489,6 +552,8 @@ public final class ScriptEngine {
             for (Buff buff : config.buffs) {
                 if (!buff.usable()) continue;
                 final long intervalMs = Math.max(1, buff.intervalSec) * 1000L;
+                log.info("[buff] 排程 {} 按鍵={} 每 {} 秒{}", buff.name, buff.key, intervalMs / 1000,
+                        buff.castOnStart ? "，啟動立即施放" : "");
 
                 Runnable cast = () -> {
                     if (!running) return;
@@ -500,10 +565,12 @@ public final class ScriptEngine {
                         if (isDualMode()) {
                             if (!WINDOW_ATTACKER.equals(focusedWindow)) {
                                 // 僅在焦點狀態未知 (例如剛啟動、尚未跑過切窗流程) 時才主動聚焦打手視窗
+                                log.debug("[buff] 焦點視窗未知，先聚焦打手視窗再施放 {}", buff.name);
                                 focusWindow(config.dualAttackerPos, WINDOW_ATTACKER);
                             }
                             if (!running) return;
                         }
+                        log.info("[buff] 施放 {} 按鍵={}", buff.name, buff.key);
                         executeWithAttackPause(buff.key.keys);
                     });
                 };

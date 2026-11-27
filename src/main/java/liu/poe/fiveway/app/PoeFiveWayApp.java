@@ -95,6 +95,9 @@ public class PoeFiveWayApp extends Application implements AppHost {
             PauseTransition delay = new PauseTransition(Duration.seconds(2));
             delay.setOnFinished(e -> ctx.updateFlow().check(false, null));
             delay.play();
+            log.debug("[update] 已排定啟動後 2 秒自動檢查更新");
+        } else {
+            log.info("[update] 啟動時自動檢查更新已停用 (update.checkOnStartup=false)");
         }
     }
 
@@ -146,6 +149,7 @@ public class PoeFiveWayApp extends Application implements AppHost {
      */
     private void onSecondInstance() {
         if (stage == null || window == null) return;
+        log.info("[app] 偵測到第二次啟動：{}", stage.isShowing() ? "視窗已顯示，提示使用者" : "視窗隱藏中，直接顯示");
         if (!stage.isShowing()) {
             window.showAndFocus();
             return;
@@ -160,6 +164,7 @@ public class PoeFiveWayApp extends Application implements AppHost {
     @Override
     public void rebuildUi() {
         int tab = main != null ? main.selectedTab() : 0;
+        log.debug("[ui] 重建介面 (tab={}, language={})", tab, I18n.current());
         scene.setRoot(loadRoot(tab));
     }
 

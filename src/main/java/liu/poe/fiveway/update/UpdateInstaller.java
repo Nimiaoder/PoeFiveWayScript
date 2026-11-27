@@ -2,6 +2,8 @@ package liu.poe.fiveway.update;
 
 import liu.poe.fiveway.config.AppConfig;
 import liu.poe.fiveway.config.AppPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,16 +25,19 @@ import java.util.zip.ZipInputStream;
  * </ul>
  */
 public final class UpdateInstaller {
+    private static final Logger log = LoggerFactory.getLogger(UpdateInstaller.class);
 
     private UpdateInstaller() {
     }
 
     public static void apply(Path downloaded) throws IOException {
+        log.info("[update] 套用更新：distribution={}, file={}", AppConfig.distribution(), downloaded);
         if (AppConfig.isPortable()) {
             applyPortable(downloaded);
         } else if (AppConfig.isInstaller()) {
             applyInstaller(downloaded);
         } else {
+            log.error("[update] 非打包版本，無法自動套用更新");
             throw new IOException("Not a packaged build");
         }
     }
@@ -43,6 +48,7 @@ public final class UpdateInstaller {
         ProcessBuilder pb = name.endsWith(".msi")
                 ? new ProcessBuilder("msiexec", "/i", installer.toString())
                 : new ProcessBuilder(installer.toString());
+        log.info("[update] 啟動安裝程式：{}", pb.command());
         pb.start();
     }
 
@@ -50,7 +56,11 @@ public final class UpdateInstaller {
     private static void applyPortable(Path zip) throws IOException {
         Path appDir = AppPaths.appDir();
         Path exe = AppPaths.launcherExe();
-        if (appDir == null || exe == null) throw new IOException("Cannot locate application directory");
+        if (appDir == null || exe == null) {
+            log.error("[update] 找不到程式所在資料夾 (appDir={}, exe={})", appDir, exe);
+            throw new IOException("Cannot locate application directory");
+        }
+        log.info("[update] 免安裝版更新：appDir={}, exe={}", appDir, exe);
 
         Path work = AppPaths.tempDir();
         Path extracted = work.resolve("extracted");
@@ -59,12 +69,14 @@ public final class UpdateInstaller {
         unzip(zip, extracted);
 
         Path source = findSourceRoot(extracted);
+        log.info("[update] 更新檔已解壓縮，來源資料夾：{}", source);
         Path bat = work.resolve("apply-update.bat");
         Files.writeString(bat, buildScript(source, appDir, exe, work), StandardCharsets.UTF_8);
 
         // 以 wscript 執行 .vbs，並用視窗樣式 0 (隱藏) 啟動批次檔：不會出現 cmd 小黑窗，也不隨本程式結束而中止
         Path vbs = work.resolve("apply-update.vbs");
         writeVbs(vbs, bat);
+        log.info("[update] 已產生更新腳本 {}，以隱藏視窗啟動 (等待本程式結束後覆蓋，保留 data 資料夾)", bat);
         new ProcessBuilder("wscript.exe", "//B", "//Nologo", vbs.toString()).start();
     }
 
@@ -118,6 +130,7 @@ public final class UpdateInstaller {
         Path root = targetDir.toAbsolutePath().normalize();
         try (InputStream raw = Files.newInputStream(zip); ZipInputStream zin = new ZipInputStream(raw, StandardCharsets.UTF_8)) {
             ZipEntry entry;
+            int files = 0;
             while ((entry = zin.getNextEntry()) != null) {
                 Path out = root.resolve(entry.getName()).normalize();
                 if (!out.startsWith(root)) throw new IOException("Illegal zip entry: " + entry.getName());
@@ -126,8 +139,10 @@ public final class UpdateInstaller {
                 } else {
                     Files.createDirectories(out.getParent());
                     Files.copy(zin, out, StandardCopyOption.REPLACE_EXISTING);
+                    files++;
                 }
             }
+            log.debug("[update] 解壓縮完成：{} 個檔案 → {}", files, root);
         }
     }
 

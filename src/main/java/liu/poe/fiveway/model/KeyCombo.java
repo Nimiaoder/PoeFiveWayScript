@@ -21,6 +21,12 @@ public class KeyCombo {
         return keys != null && !keys.isEmpty();
     }
 
+    /** log 用：顯示按鍵組合，未設定顯示 (未設定) */
+    @Override
+    public String toString() {
+        return hasKeys() ? (display == null || display.isEmpty() ? String.join("+", keys) : display) : "(未設定)";
+    }
+
     /** 與原版相同：以 display 字串判斷是否為同一組按鍵 */
     public boolean sameAs(KeyCombo other) {
         return other != null && Objects.equals(display, other.display);
